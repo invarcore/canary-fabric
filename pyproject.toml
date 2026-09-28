@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "canary-fabric"
+version = "0.1.0"
+description = "Invisible cryptographic tripwires and sub-millisecond data-leak circuit breakers for RAG and AI Agents."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "Vinay Kumar Ksheera Sagar", email = "sagarv.kumar48@gmail.com" }
+]
+license = { text = "Apache-2.0" }
+dependencies = [
+  "fastapi>=0.110.0",
+  "uvicorn>=0.28.0",
+  "httpx>=0.27.0",
+  "pydantic>=2.6.0",
+  "rich>=13.7.0",
+  "click>=8.1.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "pytest-asyncio>=0.23.0",
+  "ruff>=0.4.0"
+]
+
+[project.scripts]
+canary-fabric = "canary_fabric.cli.main:main"
+canary-proxy = "canary_fabric.cli.proxy_cli:main"
+promptcanary = "canary_fabric.cli.main:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501", "W292", "W293", "RUF022", "BLE001"]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
+testpaths = ["tests"]
+asyncio_mode = "auto"

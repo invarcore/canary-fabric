@@ -1,0 +1,13 @@
+services:
+  canary-proxy:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: canary-fabric-proxy
+    ports:
+      - "8080:8080"
+    environment:
+      - UPSTREAM_URL=https://api.openai.com
+      - SECRET_KEY=prod_master_canary_vault_key
+      - ACTION=block_and_sever
+    restart: unless-stopped
