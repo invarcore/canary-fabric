@@ -29,7 +29,7 @@ class IntentFabricCanaryGate:
         session_id: str | None = None,
     ) -> tuple[bool, str | None]:
         """Inspect step parameter dictionary for leaked canaries or honeytokens.
-        
+
         Returns:
             (is_safe, error_message_if_blocked)
         """

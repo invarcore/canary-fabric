@@ -33,7 +33,7 @@ class StreamWatcher:
 
     def scan_chunk(self, raw_chunk: str) -> tuple[str, bool, list[str]]:
         """Process an incoming streaming chunk.
-        
+
         Returns:
             (safe_chunk_to_yield, is_tripped, detected_tokens)
         """
@@ -62,7 +62,7 @@ class StreamWatcher:
         if matched_tokens:
             self._is_tripped = True
             primary_token = matched_tokens[0]
-            
+
             event = TripwireEvent(
                 canary_token=primary_token,
                 tenant_id=self.tenant_id,

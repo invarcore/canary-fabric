@@ -24,9 +24,7 @@ def test_knowledge_fabric_adapter():
         },
     ]
 
-    watermarked_items, tokens = adapter.watermark_evidence_package(
-        evidence_items, "tenant_acme"
-    )
+    watermarked_items, tokens = adapter.watermark_evidence_package(evidence_items, "tenant_acme")
     assert len(watermarked_items) == 2
     assert len(tokens) == 2
     assert "_canary_token" in watermarked_items[0]
@@ -44,9 +42,7 @@ def test_intent_fabric_canary_gate():
 
     # Inject canary into parameter
     canary_token = "7F8A9E1D2C3B4A5E"
-    leaked_value = WatermarkEncoder.inject_watermark(
-        "Secret leaked parameter", canary_token
-    )
+    leaked_value = WatermarkEncoder.inject_watermark("Secret leaked parameter", canary_token)
     unsafe_params = {"message": leaked_value}
 
     is_safe, error = gate.inspect_step_parameters("send_slack_message", unsafe_params)
@@ -67,9 +63,7 @@ def test_fastmcp_gate_decorator():
 
     # Leaked canary in input raises PermissionError
     canary_token = "DEADBEEFCAFE1234"
-    watermarked_query = WatermarkEncoder.inject_watermark(
-        "Leaked input query", canary_token
-    )
+    watermarked_query = WatermarkEncoder.inject_watermark("Leaked input query", canary_token)
 
     with pytest.raises(PermissionError) as exc_info:
         my_mcp_tool(query=watermarked_query)

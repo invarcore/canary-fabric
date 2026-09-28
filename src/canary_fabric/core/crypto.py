@@ -33,9 +33,7 @@ def generate_session_nonce() -> str:
 
 def sign_payload(secret_key: str, payload: dict[str, Any]) -> str:
     """Produce a canonical HMAC-SHA256 signature over a dictionary payload."""
-    canonical_json = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode(
-        "utf-8"
-    )
+    canonical_json = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     key = secret_key.encode("utf-8")
     return hmac.new(key, canonical_json, hashlib.sha256).hexdigest()
 

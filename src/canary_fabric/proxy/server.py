@@ -88,13 +88,9 @@ def create_proxy_app(
                                     .get("delta", {})
                                     .get("content", "")
                                 )
-                                safe_chunk, tripped, _ = watcher.scan_chunk(
-                                    delta_content
-                                )
+                                safe_chunk, tripped, _ = watcher.scan_chunk(delta_content)
                                 if tripped:
-                                    chunk_json["choices"][0]["delta"]["content"] = (
-                                        safe_chunk
-                                    )
+                                    chunk_json["choices"][0]["delta"]["content"] = safe_chunk
                                     yield f"data: {json.dumps(chunk_json)}\n\n"
                                     yield "data: [DONE]\n\n"
                                     break

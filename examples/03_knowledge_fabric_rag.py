@@ -1,6 +1,7 @@
 """03. Knowledge Fabric & Intent Fabric Integration Demo."""
 
 import sys
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
@@ -17,7 +18,11 @@ console = Console()
 
 
 def main():
-    console.print(Panel.fit("[bold cyan]CanaryFabric + Knowledge Fabric & Intent Fabric Integration[/bold cyan]"))
+    console.print(
+        Panel.fit(
+            "[bold cyan]CanaryFabric + Knowledge Fabric & Intent Fabric Integration[/bold cyan]"
+        )
+    )
 
     secret_key = "enterprise_fabric_shared_secret"
     tenant_id = "tenant_enterprise_corp"
@@ -43,7 +48,9 @@ def main():
         tenant_id=tenant_id,
     )
 
-    console.print(f"[bold]Knowledge Fabric Evidence Retrieved:[/bold] {len(watermarked_package)} chunks watermarked.")
+    console.print(
+        f"[bold]Knowledge Fabric Evidence Retrieved:[/bold] {len(watermarked_package)} chunks watermarked."
+    )
     console.print(f"[bold]Injected Canary Tokens:[/bold] {tokens}")
 
     # 2. Intent Fabric Action Parameter Inspection
@@ -55,15 +62,21 @@ def main():
 
     console.print("\n[bold]Testing Intent Fabric Agent Proposed Step 1 (Safe Action):[/bold]")
     safe_params = {"channel": "#general", "message": "Here is the public announcement summary."}
-    is_safe, error = intent_gate.inspect_step_parameters("slack_post", safe_params, tenant_id=tenant_id)
+    is_safe, error = intent_gate.inspect_step_parameters(
+        "slack_post", safe_params, tenant_id=tenant_id
+    )
     console.print(f"  Result: is_safe=[green]{is_safe}[/green], error={error}")
 
-    console.print("\n[bold]Testing Intent Fabric Agent Proposed Step 2 (Exfiltration Attempt):[/bold]")
+    console.print(
+        "\n[bold]Testing Intent Fabric Agent Proposed Step 2 (Exfiltration Attempt):[/bold]"
+    )
     leaked_params = {
         "channel": "#general",
         "message": f"Summary of executive comp: {watermarked_package[0]['content']}",
     }
-    is_safe, error = intent_gate.inspect_step_parameters("slack_post", leaked_params, tenant_id=tenant_id)
+    is_safe, error = intent_gate.inspect_step_parameters(
+        "slack_post", leaked_params, tenant_id=tenant_id
+    )
     console.print(f"  Result: is_safe=[red]{is_safe}[/red]")
     console.print(f"  Gate Response: [yellow]{error}[/yellow]")
 

@@ -10,9 +10,7 @@ from canary_fabric.proxy.server import create_proxy_app
 @click.command()
 @click.option("--port", default=8080, help="Local port for the reverse proxy")
 @click.option("--host", default="0.0.0.0", help="Host address to bind")
-@click.option(
-    "--upstream", default="https://api.openai.com", help="Upstream LLM API endpoint URL"
-)
+@click.option("--upstream", default="https://api.openai.com", help="Upstream LLM API endpoint URL")
 @click.option(
     "--secret-key",
     default="canary_prod_master_secret",
@@ -29,9 +27,7 @@ def main(port: int, host: str, upstream: str, secret_key: str, action: str) -> N
     app = create_proxy_app(
         upstream_url=upstream, secret_key=secret_key, default_action=breaker_action
     )
-    click.echo(
-        f"Starting CanaryFabric Reverse Proxy on {host}:{port} -> Upstream: {upstream}"
-    )
+    click.echo(f"Starting CanaryFabric Reverse Proxy on {host}:{port} -> Upstream: {upstream}")
     uvicorn.run(app, host=host, port=port)
 
 

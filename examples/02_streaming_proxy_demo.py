@@ -1,6 +1,7 @@
 """02. Streaming Token Watcher & Circuit Breaker Demonstration."""
 
 import sys
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
@@ -49,8 +50,18 @@ def main():
 
     # Simulated LLM outbound token stream containing the honeytoken
     simulated_chunks = [
-        "To", " process", " refunds", " automatically,", " use", " this", " secret",
-        " key: ", honey_key.value[:12], honey_key.value[12:], " to", " authenticate",
+        "To",
+        " process",
+        " refunds",
+        " automatically,",
+        " use",
+        " this",
+        " secret",
+        " key: ",
+        honey_key.value[:12],
+        honey_key.value[12:],
+        " to",
+        " authenticate",
     ]
 
     console.print("\n[bold]Inspecting Outbound LLM Stream in Real-Time:[/bold]")

@@ -44,9 +44,7 @@ def canary_gate(
                     matched_text_snippet=combined_args[:150],
                 )
                 _, replacement = circuit_breaker.handle_tripwire(event)
-                raise PermissionError(
-                    f"CanaryFabric security tripwire triggered: {replacement}"
-                )
+                raise PermissionError(f"CanaryFabric security tripwire triggered: {replacement}")
 
             # Execute tool
             result = func(*args, **kwargs)
@@ -54,9 +52,7 @@ def canary_gate(
             # Check output
             res_str = json.dumps(result, default=str, ensure_ascii=False)
             extracted_out = WatermarkDecoder.extract_tokens(res_str)
-            matched_out = [
-                t for t in extracted_out if not active_tokens or t in active_tokens
-            ]
+            matched_out = [t for t in extracted_out if not active_tokens or t in active_tokens]
 
             ht_matches_out = ht_reg.find_matches(res_str)
             for ht in ht_matches_out:
@@ -96,17 +92,13 @@ def canary_gate(
                     matched_text_snippet=combined_args[:150],
                 )
                 _, replacement = circuit_breaker.handle_tripwire(event)
-                raise PermissionError(
-                    f"CanaryFabric security tripwire triggered: {replacement}"
-                )
+                raise PermissionError(f"CanaryFabric security tripwire triggered: {replacement}")
 
             result = await func(*args, **kwargs)
 
             res_str = json.dumps(result, default=str, ensure_ascii=False)
             extracted_out = WatermarkDecoder.extract_tokens(res_str)
-            matched_out = [
-                t for t in extracted_out if not active_tokens or t in active_tokens
-            ]
+            matched_out = [t for t in extracted_out if not active_tokens or t in active_tokens]
 
             ht_matches_out = ht_reg.find_matches(res_str)
             for ht in ht_matches_out:

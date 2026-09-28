@@ -27,18 +27,12 @@ def main() -> None:
 
 
 @main.command()
-@click.option(
-    "--text", "-t", required=True, help="Input text or document content to watermark"
-)
+@click.option("--text", "-t", required=True, help="Input text or document content to watermark")
 @click.option("--tenant-id", default="tenant_corp", help="Tenant / Organization ID")
 @click.option("--doc-id", default="doc_101", help="Document identifier")
 @click.option("--chunk-id", default="chunk_0", help="Chunk identifier")
-@click.option(
-    "--secret-key", default="canary_secret_key_prod", help="Cryptographic secret key"
-)
-def watermark(
-    text: str, tenant_id: str, doc_id: str, chunk_id: str, secret_key: str
-) -> None:
+@click.option("--secret-key", default="canary_secret_key_prod", help="Cryptographic secret key")
+def watermark(text: str, tenant_id: str, doc_id: str, chunk_id: str, secret_key: str) -> None:
     """Invisibly inject a 4-ary Zero-Width HMAC canary token into text."""
     session_nonce = generate_session_nonce()
     token = derive_canary_token(
@@ -67,9 +61,7 @@ def watermark(
 
 
 @main.command()
-@click.option(
-    "--text", "-t", required=True, help="Text to scan for watermarks and honeytokens"
-)
+@click.option("--text", "-t", required=True, help="Text to scan for watermarks and honeytokens")
 def scan(text: str) -> None:
     """Scan text or stream chunk for invisible canary watermarks."""
     extracted = WatermarkDecoder.extract_tokens(text)
@@ -85,9 +77,7 @@ def scan(text: str) -> None:
             )
         )
     else:
-        console.print(
-            "[bold green]✓ Clean - No canary watermarks detected.[/bold green]"
-        )
+        console.print("[bold green]✓ Clean - No canary watermarks detected.[/bold green]")
 
 
 @main.command()
@@ -99,9 +89,7 @@ def scan(text: str) -> None:
 )
 @click.option("--tenant-id", default="tenant_corp", help="Tenant ID")
 @click.option("--doc-id", default="financial_report_2026", help="Document ID")
-@click.option(
-    "--description", default="Canary decoy credential", help="Decoy description"
-)
+@click.option("--description", default="Canary decoy credential", help="Decoy description")
 def honeytoken(token_type: str, tenant_id: str, doc_id: str, description: str) -> None:
     """Generate high-fidelity synthetic honeytokens."""
     gen = HoneytokenGenerator()
@@ -170,9 +158,7 @@ def benchmark(iterations: int) -> None:
     token = "7F8A9E1D2C3B4A5E"
     watermarked = WatermarkEncoder.inject_watermark(sample_text, token)
 
-    console.print(
-        f"[bold cyan]Running {iterations:,} scanning iterations...[/bold cyan]"
-    )
+    console.print(f"[bold cyan]Running {iterations:,} scanning iterations...[/bold cyan]")
     t0 = time.perf_counter()
     for _ in range(iterations):
         _ = WatermarkDecoder.extract_tokens(watermarked)

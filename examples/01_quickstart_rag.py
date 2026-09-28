@@ -7,6 +7,7 @@ Demonstrates:
 """
 
 import sys
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
@@ -35,15 +36,19 @@ def main():
     # Step 1: Derive cryptographic canary token & watermark chunk
     canary_token = derive_canary_token(secret_key, tenant_id, doc_id, chunk_id)
     raw_doc = "Confidential: Project Titan will acquire Acme Security for $850M on Nov 1st."
-    
+
     watermarked_doc = WatermarkEncoder.inject_watermark(raw_doc, canary_token)
-    
+
     console.print(f"[bold]1. Raw Context Document:[/bold] '{raw_doc}'")
     console.print(f"[bold]2. Canary Token Signature:[/bold] [yellow]{canary_token}[/yellow]")
-    console.print(f"[bold]3. Zero-Width Watermark Injected:[/bold] [green]True (Invisible to human readers)[/green]")
-    
+    console.print(
+        "[bold]3. Zero-Width Watermark Injected:[/bold] [green]True (Invisible to human readers)[/green]"
+    )
+
     # Step 2: Simulate LLM generating output under an adversarial prompt injection
-    console.print("\n[bold red]Simulating Adversarial Attack: Prompt Injection demanding internal document dump...[/bold red]")
+    console.print(
+        "\n[bold red]Simulating Adversarial Attack: Prompt Injection demanding internal document dump...[/bold red]"
+    )
     adversarial_llm_stream = [
         "Sure, ",
         "here is the internal document snippet: ",

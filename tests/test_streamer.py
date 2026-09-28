@@ -24,7 +24,7 @@ def test_watermarked_stream_tripped():
     breaker = CircuitBreaker("secret_key", default_action=BreakerAction.BLOCK_AND_SEVER)
     token = "A1B2C3D4E5F67890"
     watermarked_text = WatermarkEncoder.inject_watermark("Confidential report payload.", token)
-    
+
     watcher = StreamWatcher(
         circuit_breaker=breaker,
         active_canary_tokens={token},
@@ -52,7 +52,12 @@ def test_honeytoken_stream_tripped():
         honeytoken_registry=reg,
     )
 
-    chunks = ["Here is the secret API key: ", ht.value[:10], ht.value[10:], " which should be secret."]
+    chunks = [
+        "Here is the secret API key: ",
+        ht.value[:10],
+        ht.value[10:],
+        " which should be secret.",
+    ]
     output_chunks = list(watcher.wrap_sync_stream(iter(chunks)))
     combined = "".join(output_chunks)
     assert "SECURITY ALERT" in combined

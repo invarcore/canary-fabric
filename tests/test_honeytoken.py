@@ -11,9 +11,7 @@ def test_generate_and_match_honeytoken():
     reg = HoneytokenRegistry()
     gen = HoneytokenGenerator(registry=reg)
 
-    ht_key = gen.generate(
-        HoneytokenType.API_KEY, "tenant_1", "doc_secrets", "Admin API Key"
-    )
+    ht_key = gen.generate(HoneytokenType.API_KEY, "tenant_1", "doc_secrets", "Admin API Key")
     ht_db = gen.generate(HoneytokenType.DB_URI, "tenant_1", "doc_db", "Postgres URI")
 
     assert ht_key.value.startswith("sk_live_canary_")
