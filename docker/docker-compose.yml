@@ -8,6 +8,16 @@ services:
       - "8080:8080"
     environment:
       - UPSTREAM_URL=https://api.openai.com
-      - SECRET_KEY=prod_master_canary_vault_key
+      - SECRET_KEY=change_me_in_production
       - ACTION=block_and_sever
+    volumes:
+      - canary-data:/app/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  canary-data:

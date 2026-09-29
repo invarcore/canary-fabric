@@ -31,3 +31,4 @@ venv.bak/
 .ruff_cache/
 *.sqlite3
 *.db
+*.code-workspace
