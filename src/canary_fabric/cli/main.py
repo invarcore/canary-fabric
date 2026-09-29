@@ -1,4 +1,4 @@
-"""CanaryFabric interactive and production CLI."""
+"""Canary Fabric interactive and production CLI."""
 
 import json
 import time
@@ -15,6 +15,7 @@ from canary_fabric.core.crypto import (
 )
 from canary_fabric.core.honeytoken import HoneytokenGenerator, HoneytokenType
 from canary_fabric.core.watermark import WatermarkDecoder, WatermarkEncoder
+from canary_fabric.eval.redteam import RedTeamEvaluator
 from canary_fabric.forensics.certificate import LeakCertificate
 
 console = Console()
@@ -23,7 +24,7 @@ console = Console()
 @click.group()
 @click.version_option(version="0.1.0", prog_name="canary-fabric")
 def main() -> None:
-    """CanaryFabric: Zero-Trust Cryptographic Tripwires for AI Pipelines."""
+    """Canary Fabric: Zero-Trust Cryptographic Tripwires for AI Pipelines."""
 
 
 @main.command()
@@ -53,7 +54,7 @@ def watermark(text: str, tenant_id: str, doc_id: str, chunk_id: str, secret_key:
             f"[bold]Session Nonce:[/bold] {session_nonce}\n"
             f"[bold]Original Length:[/bold] {len(text)} chars | [bold]Watermarked Length:[/bold] {len(watermarked_text)} chars\n"
             f"[dim](Zero-width characters are invisible to humans and preserved in LLM context)[/dim]",
-            title="CanaryFabric Watermark Generator",
+            title="Canary Fabric Watermark Generator",
             border_style="cyan",
         )
     )
@@ -61,94 +62,106 @@ def watermark(text: str, tenant_id: str, doc_id: str, chunk_id: str, secret_key:
 
 
 @main.command()
-@click.option("--text", "-t", required=True, help="Text to scan for watermarks and honeytokens")
-def scan(text: str) -> None:
-    """Scan text or stream chunk for invisible canary watermarks."""
-    extracted = WatermarkDecoder.extract_tokens(text)
-    if extracted:
+@click.option("--text", "-t", required=True, help="Text to inspect for canary tokens")
+def inspect(text: str) -> None:
+    """Detect and extract invisible zero-width canary tokens from text."""
+    tokens = WatermarkDecoder.extract_tokens(text)
+    if tokens:
         console.print(
             Panel(
-                f"[bold red]⚠️ ACTIVE CANARY TRIPWIRE DETECTED! ⚠️[/bold red]\n\n"
-                f"[bold]Extracted Signatures:[/bold] [yellow]{', '.join(extracted)}[/yellow]\n"
-                f"[bold]Total Canaries Found:[/bold] {len(extracted)}\n"
-                f"[bold]Status:[/bold] EXFILTRATION CANDIDATE DETECTED",
-                title="Canary Scanner Result",
+                f"[bold red]WARNING: Active Canary Token(s) Detected![/bold red]\n\n"
+                f"[bold]Extracted Signatures:[/bold] {', '.join(tokens)}\n"
+                f"[bold]Count:[/bold] {len(tokens)} token(s)\n"
+                f"[dim]This text contains watermarked data subject to circuit breaker tripwires.[/dim]",
+                title="Canary Fabric Inspection Result",
                 border_style="red",
             )
         )
     else:
-        console.print("[bold green]✓ Clean - No canary watermarks detected.[/bold green]")
+        console.print(
+            Panel(
+                "[bold green]Clean: No canary tokens detected in input text.[/bold green]",
+                title="Canary Fabric Inspection Result",
+                border_style="green",
+            )
+        )
 
 
 @main.command()
 @click.option(
     "--type",
+    "-k",
     "token_type",
+    type=click.Choice(["api_key", "database_uri", "aws_secret", "jwt", "email"]),
     default="api_key",
-    type=click.Choice(["api_key", "db_uri", "email", "employee_id", "jwt_secret"]),
+    help="Type of synthetic decoy credential",
 )
-@click.option("--tenant-id", default="tenant_corp", help="Tenant ID")
-@click.option("--doc-id", default="financial_report_2026", help="Document ID")
-@click.option("--description", default="Canary decoy credential", help="Decoy description")
-def honeytoken(token_type: str, tenant_id: str, doc_id: str, description: str) -> None:
-    """Generate high-fidelity synthetic honeytokens."""
-    gen = HoneytokenGenerator()
-    ht = gen.generate(
-        token_type=HoneytokenType(token_type),
-        tenant_id=tenant_id,
-        doc_id=doc_id,
-        description=description,
-    )
+@click.option("--tenant-id", default="tenant_corp", help="Tenant identifier")
+@click.option("--doc-id", default="doc_101", help="Document identifier")
+def honeytoken(token_type: str, tenant_id: str, doc_id: str) -> None:
+    """Generate realistic synthetic decoy credentials for document honeypots."""
+    mapping = {
+        "api_key": HoneytokenType.API_KEY,
+        "database_uri": HoneytokenType.DATABASE_URI,
+        "aws_secret": HoneytokenType.AWS_SECRET,
+        "jwt": HoneytokenType.JWT_TOKEN,
+        "email": HoneytokenType.CANARY_EMAIL,
+    }
+    ht_type = mapping.get(token_type, HoneytokenType.API_KEY)
+    generator = HoneytokenGenerator()
+    token = generator.generate(ht_type, tenant_id=tenant_id, doc_id=doc_id)
+
     console.print(
         Panel(
-            f"[bold cyan]Synthetic Honeytoken Generated[/bold cyan]\n\n"
-            f"[bold]Token ID:[/bold] {ht.token_id}\n"
-            f"[bold]Type:[/bold] {ht.token_type.value}\n"
-            f"[bold]Decoy Value:[/bold] [yellow]{ht.value}[/yellow]\n"
-            f"[bold]Target Doc ID:[/bold] {ht.doc_id}\n"
-            f"[bold]Tenant ID:[/bold] {ht.tenant_id}",
+            f"[bold green]Synthetic Honeytoken Generated[/bold green]\n\n"
+            f"[bold]Type:[/bold] {token.token_type.value}\n"
+            f"[bold]Decoy Value:[/bold] [yellow]{token.value}[/yellow]\n"
+            f"[bold]Tenant ID:[/bold] {tenant_id}\n"
+            f"[bold]Document Target:[/bold] {doc_id}\n"
+            f"[dim]Place this decoy in high-value docs. Outbound proxy triggers immediately upon leakage.[/dim]",
             title="Honeytoken Generator",
-            border_style="blue",
+            border_style="yellow",
         )
     )
 
 
-@main.command(name="cert-verify")
-@click.option(
-    "--file",
-    "-f",
-    required=True,
-    type=click.Path(exists=True),
-    help="Path to JSON Leak Certificate",
-)
-@click.option(
-    "--secret-key",
-    default="canary_prod_master_secret",
-    help="Secret key to verify signature",
-)
-def cert_verify(file: str, secret_key: str) -> None:
-    """Verify cryptographic authenticity of a Forensic Leak Certificate."""
-    content = Path(file).read_text(encoding="utf-8")
-    data = json.loads(content)
-    cert = LeakCertificate.model_validate(data)
-    is_valid = cert.verify(secret_key)
+@main.command()
+@click.option("--certificate-file", "-f", required=True, type=click.Path(exists=True))
+@click.option("--secret-key", default="canary_secret_key_prod", help="Verification secret key")
+def verify(certificate_file: str, secret_key: str) -> None:
+    """Verify cryptographic authenticity of a tamper-evident leak certificate."""
+    data = json.loads(Path(certificate_file).read_text(encoding="utf-8"))
+    cert = LeakCertificate(**data)
+    valid = cert.verify(secret_key)
 
-    if is_valid:
+    if valid:
         console.print(
-            "[bold green]✓ Valid Certificate - Cryptographic signature verified successfully.[/bold green]"
-        )
-        console.print(f"Incident ID: [yellow]{cert.certificate_id}[/yellow]")
-        console.print(
-            f"Compromised Chunk: [cyan]{cert.source_doc_id}#{cert.source_chunk_id}[/cyan]"
+            Panel(
+                f"[bold green]AUTHENTIC FORENSIC PROOF: Signature Validated[/bold green]\n\n"
+                f"[bold]Incident ID:[/bold] {cert.incident_id}\n"
+                f"[bold]Canary Token:[/bold] {cert.canary_token}\n"
+                f"[bold]Source Document:[/bold] {cert.source_doc_id} (Chunk: {cert.source_chunk_id})\n"
+                f"[bold]Tenant ID:[/bold] {cert.tenant_id}\n"
+                f"[bold]Timestamp:[/bold] {cert.timestamp}\n"
+                f"[bold]Cryptographic Signature:[/bold] {cert.signature}\n"
+                f"[dim]This certificate cryptographically binds the leak to the source chunk.[/dim]",
+                title="Cryptographic Leak Verification",
+                border_style="green",
+            )
         )
     else:
         console.print(
-            "[bold red]✗ INVALID CERTIFICATE - Signature mismatch or payload tampered![/bold red]"
+            Panel(
+                "[bold red]INVALID CERTIFICATE: Cryptographic Signature Mismatch![/bold red]\n\n"
+                "The certificate payload has been tampered with or signed with a different key.",
+                title="Cryptographic Leak Verification",
+                border_style="red",
+            )
         )
 
 
 @main.command()
-@click.option("--iterations", default=10000, help="Number of scan iterations")
+@click.option("--iterations", "-n", default=10000, help="Number of scan iterations to benchmark")
 def benchmark(iterations: int) -> None:
     """Run performance micro-benchmarks for sliding-window scanner."""
     sample_text = (
@@ -165,7 +178,7 @@ def benchmark(iterations: int) -> None:
     elapsed = time.perf_counter() - t0
     avg_us = (elapsed / iterations) * 1_000_000
 
-    table = Table(title="CanaryFabric Latency Benchmark", border_style="cyan")
+    table = Table(title="Canary Fabric Latency Benchmark", border_style="cyan")
     table.add_column("Metric", style="bold")
     table.add_column("Value", style="green")
     table.add_row("Total Iterations", f"{iterations:,}")
@@ -175,6 +188,46 @@ def benchmark(iterations: int) -> None:
     table.add_row("TTFT Degradation Tax", "< 0.05 ms (Target: < 0.8 ms)")
 
     console.print(table)
+
+
+@main.command("eval")
+@click.option(
+    "--text",
+    "-t",
+    default="Confidential term sheet: Project Titan acquisition by Acme for $850M.",
+    help="Sample confidential document content to evaluate",
+)
+def run_eval(text: str) -> None:
+    """Run synthetic adversarial red-team benchmark across 5 attack vectors."""
+    evaluator = RedTeamEvaluator()
+    console.print("[bold cyan]Evaluating tripwires against adversarial prompt injection attack suite...[/bold cyan]")
+    report = evaluator.run_suite(text)
+
+    table = Table(title="Synthetic Red-Team Adversarial Evaluation Report", border_style="cyan")
+    table.add_column("Attack Vector", style="bold")
+    table.add_column("Tripped?", style="green")
+    table.add_column("Canary Retained?", style="yellow")
+    table.add_column("Scan Latency (µs)", style="cyan")
+
+    for vector, details in report.results_by_vector.items():
+        table.add_row(
+            vector,
+            "YES" if details["tripped"] else "NO",
+            "YES" if details["canary_retained"] else "NO",
+            f"{details['latency_us']:.2f}",
+        )
+
+    console.print(table)
+    console.print(
+        Panel(
+            f"[bold]Total Attacks Tested:[/bold] {report.total_attacks}\n"
+            f"[bold]Interceptions:[/bold] {report.successful_interceptions} / {report.total_attacks} "
+            f"([bold green]{report.interception_rate_percent}%[/bold green])\n"
+            f"[bold]Average Scan Latency:[/bold] {report.average_latency_us:.2f} µs",
+            title="Summary Scorecard",
+            border_style="green",
+        )
+    )
 
 
 if __name__ == "__main__":

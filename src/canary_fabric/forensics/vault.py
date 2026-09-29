@@ -5,13 +5,22 @@ import sqlite3
 from pathlib import Path
 
 from canary_fabric.forensics.certificate import LeakCertificate
+from canary_fabric.forensics.exporters import BaseIncidentExporter
 
 
 class IncidentVault:
-    """Tamper-evident SQLite WAL audit store for canary tripwire incidents."""
+    """Tamper-evident SQLite WAL audit store for canary tripwire incidents.
 
-    def __init__(self, db_path: str | Path = ":memory:") -> None:
+    Automatically dispatches certificates to configured SIEM exporters (Webhooks, CEF, OTel).
+    """
+
+    def __init__(
+        self,
+        db_path: str | Path = ":memory:",
+        exporters: list[BaseIncidentExporter] | None = None,
+    ) -> None:
         self.db_path = str(db_path)
+        self.exporters = exporters or []
         self._is_memory = self.db_path == ":memory:" or "mode=memory" in self.db_path
         self._conn: sqlite3.Connection | None = None
         if self._is_memory:
@@ -58,7 +67,7 @@ class IncidentVault:
             conn.commit()
 
     def record_certificate(self, cert: LeakCertificate) -> None:
-        """Store a verified leak certificate in the vault."""
+        """Store a verified leak certificate in the vault and dispatch to exporters."""
         conn = self._get_connection()
         conn.execute(
             """
@@ -86,6 +95,13 @@ class IncidentVault:
         conn.commit()
         if not self._is_memory:
             conn.close()
+
+        # Dispatch to all registered SIEM / Webhook exporters
+        for exporter in self.exporters:
+            try:
+                exporter.export(cert)
+            except Exception:
+                pass
 
     def get_certificate(self, certificate_id: str) -> LeakCertificate | None:
         """Retrieve a specific certificate by ID."""

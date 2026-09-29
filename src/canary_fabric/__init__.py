@@ -1,10 +1,18 @@
-"""CanaryFabric: Invisible Cryptographic Tripwires and Sub-Millisecond Egress Circuit Breakers for AI."""
+"""Canary Fabric: Invisible Cryptographic Tripwires and Sub-Millisecond Egress Circuit Breakers for AI."""
 
 import sys
 
 from canary_fabric.adapters.fastmcp import canary_gate
 from canary_fabric.adapters.intent_fabric import IntentFabricCanaryGate
 from canary_fabric.adapters.knowledge_fabric import KnowledgeFabricCanaryAdapter
+from canary_fabric.adapters.langchain import (
+    CanaryCallbackHandler,
+    CanaryDocumentTransformer,
+    CanaryRetriever,
+    CanaryTripwireException,
+)
+from canary_fabric.adapters.llamaindex import CanaryNodePostprocessor
+from canary_fabric.adapters.openai import CanaryStreamWrapper, wrap_streaming_response
 from canary_fabric.breaker.alerter import IncidentAlerter
 from canary_fabric.breaker.circuit import (
     BreakerAction,
@@ -24,16 +32,24 @@ from canary_fabric.core.honeytoken import (
     HoneytokenRegistry,
     HoneytokenType,
 )
+from canary_fabric.core.synonyms import SemanticWatermarker
 from canary_fabric.core.watermark import (
     WatermarkDecoder,
     WatermarkEncoder,
 )
+from canary_fabric.eval.redteam import RedTeamEvaluator
 from canary_fabric.forensics.certificate import LeakCertificate
+from canary_fabric.forensics.exporters import (
+    BaseIncidentExporter,
+    CEFExporter,
+    OpenTelemetryExporter,
+    WebhookExporter,
+)
 from canary_fabric.forensics.vault import IncidentVault
 from canary_fabric.proxy.server import create_proxy_app
 from canary_fabric.proxy.streamer import StreamWatcher
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 # Register promptcanary alias in sys.modules for backward compatibility
 sys.modules["promptcanary"] = sys.modules[__name__]
@@ -47,6 +63,7 @@ __all__ = [
     "verify_signature",
     "WatermarkEncoder",
     "WatermarkDecoder",
+    "SemanticWatermarker",
     "Honeytoken",
     "HoneytokenType",
     "HoneytokenGenerator",
@@ -57,9 +74,13 @@ __all__ = [
     "CircuitBreaker",
     "TripwireEvent",
     "IncidentAlerter",
-    # Forensics
+    # Forensics & Exporters
     "LeakCertificate",
     "IncidentVault",
+    "BaseIncidentExporter",
+    "WebhookExporter",
+    "CEFExporter",
+    "OpenTelemetryExporter",
     # Proxy
     "StreamWatcher",
     "create_proxy_app",
@@ -67,4 +88,13 @@ __all__ = [
     "KnowledgeFabricCanaryAdapter",
     "IntentFabricCanaryGate",
     "canary_gate",
+    "CanaryDocumentTransformer",
+    "CanaryRetriever",
+    "CanaryCallbackHandler",
+    "CanaryTripwireException",
+    "CanaryNodePostprocessor",
+    "CanaryStreamWrapper",
+    "wrap_streaming_response",
+    # Eval
+    "RedTeamEvaluator",
 ]

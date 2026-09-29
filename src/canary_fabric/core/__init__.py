@@ -1,4 +1,4 @@
-"""Core cryptographic, steganographic, and honeytoken primitives for CanaryFabric."""
+"""Core cryptographic, steganographic, and honeytoken primitives for Canary Fabric."""
 
 from canary_fabric.core.crypto import (
     derive_canary_token,
@@ -12,16 +12,21 @@ from canary_fabric.core.honeytoken import (
     HoneytokenRegistry,
     HoneytokenType,
 )
-from canary_fabric.core.watermark import (
-    WatermarkDecoder,
-    WatermarkEncoder,
+from canary_fabric.core.synonyms import (
+    DEFAULT_SYNONYM_PAIRS,
+    DetectionResult,
+    SemanticWatermarker,
 )
+from canary_fabric.core.watermark import WatermarkDecoder, WatermarkEncoder
 
 __all__ = [
+    "DEFAULT_SYNONYM_PAIRS",
+    "DetectionResult",
     "Honeytoken",
     "HoneytokenGenerator",
     "HoneytokenRegistry",
     "HoneytokenType",
+    "SemanticWatermarker",
     "WatermarkDecoder",
     "WatermarkEncoder",
     "derive_canary_token",
