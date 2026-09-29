@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/logo.jpg" alt="CanaryFabric Logo" width="220px" style="border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+  <img src="assets/logo.jpg" alt="Canary Fabric Logo" width="220px" style="border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
 </p>
 
-<h1 align="center">CanaryFabric</h1>
+<h1 align="center">Canary Fabric</h1>
 
 <p align="center">
   <strong>Invisible Cryptographic Tripwires & Sub-Millisecond Egress Circuit Breakers for RAG and AI Agents.</strong>
@@ -28,9 +28,9 @@ When enterprise applications connect Large Language Models (LLMs) or autonomous 
 
 ---
 
-## 🛡️ The Solution: CanaryFabric
+## 🛡️ The Solution: Canary Fabric
 
-**CanaryFabric** introduces zero-overhead **invisible cryptographic tripwires** and **ultra-low-latency streaming circuit breakers**:
+**Canary Fabric** (`canary-fabric`) introduces zero-overhead **invisible cryptographic tripwires** and **ultra-low-latency streaming circuit breakers**:
 
 * **4-ary Zero-Width Steganography**: Injects 64-bit HMAC-derived canary tokens (`\u200B`, `\u200C`, `\u200D`, `\uFEFF`) invisibly into retrieved chunks. They are 100% invisible to human reviewers and preserved through LLM tokenization.
 * **Sub-Millisecond (<0.8ms) Stream Circuit Breaker**: Scans outbound Server-Sent Events (SSE) in real-time with a zero-buffering sliding ring buffer, severing the socket before secret data leaves the boundary.
