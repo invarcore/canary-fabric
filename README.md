@@ -12,30 +12,33 @@
   <a href="https://github.com/sagarv48/canary-fabric/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="https://pypi.org/project/canary-fabric/"><img src="https://img.shields.io/badge/PyPI-canary--fabric-3776AB?logo=pypi&logoColor=white" alt="PyPI"></a>
   <a href="https://github.com/sagarv48/canary-fabric/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
-  <a href="https://github.com/sagarv48/canary-fabric/releases"><img src="https://img.shields.io/badge/Release-v0.1.0-blue.svg" alt="Release"></a>
+  <a href="https://github.com/sagarv48/canary-fabric/releases"><img src="https://img.shields.io/badge/Release-v0.2.0-blue.svg" alt="Release"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-Native%20Security-purple.svg" alt="MCP Native"></a>
 </p>
 
 ---
 
-## ⚡ The Problem: Stealthy RAG Exfiltration & Indirect Prompt Injections
+## 🛡️ The Problem: Stealthy RAG Exfiltration & Indirect Prompt Injections
 
 When enterprise applications connect Large Language Models (LLMs) or autonomous agents to private knowledge bases (wikis, HR records, customer PII, financial ledgers), **Indirect Prompt Injection** and **Context Leakage** represent critical zero-day threats:
 
-1. **Undetected Exfiltration**: Adversarial prompts or untrusted retrieved documents command the model to summarize, base64-encode, or leak sensitive chunks over streaming channels or external tool parameters.
-2. **The Guardrail Latency Dilemma**: Heavy synchronous guardrails (Microsoft Presidio, Guardrails AI, NeMo) add **150ms–2,000ms of Time-to-First-Token (TTFT)** latency, destroying the real-time user experience.
+1. **Undetected Exfiltration**: Adversarial prompts or untrusted retrieved documents command the model to summarize, base64-encode, or leak sensitive chunks over streaming channels or external agent tool parameters.
+2. **The Guardrail Latency Dilemma**: Heavy synchronous guardrails (Microsoft Presidio, Guardrails AI, NeMo) add **150ms – 2,000ms of Time-to-First-Token (TTFT)** latency, destroying the real-time user experience.
 3. **No Forensic Chain of Custody**: When a data breach occurs, SecOps teams cannot prove *which specific document chunk* was leaked, in *which session*, to *which user*, and *through which prompt*.
 
 ---
 
-## 🛡️ The Solution: Canary Fabric
+## ⚡ The Solution: Canary Fabric
 
 **Canary Fabric** (`canary-fabric`) introduces zero-overhead **invisible cryptographic tripwires** and **ultra-low-latency streaming circuit breakers**:
 
 * **4-ary Zero-Width Steganography**: Injects 64-bit HMAC-derived canary tokens (`\u200B`, `\u200C`, `\u200D`, `\uFEFF`) invisibly into retrieved chunks. They are 100% invisible to human reviewers and preserved through LLM tokenization.
-* **Sub-Millisecond (<0.8ms) Stream Circuit Breaker**: Scans outbound Server-Sent Events (SSE) in real-time with a zero-buffering sliding ring buffer, severing the socket before secret data leaves the boundary.
+* **Tokenizer-Resilient Semantic Micro-Synonyms**: Keyed pseudo-random synonym substitution with statistical binomial confidence testing ($p < 0.001$) for environments that strip zero-width characters.
+* **Sub-Millisecond (<0.8ms) Stream Circuit Breaker**: Scans outbound Server-Sent Events (SSE) and partial agent tool-call argument JSON in real-time with a zero-buffering sliding ring buffer, severing the socket before secret data leaves the boundary.
 * **Synthetic Honeytokens**: Generates realistic decoy credentials (`sk_live_canary_...`, postgres connection strings, canary emails) for honeypot documents.
 * **Cryptographic Leak Certificates**: Issues tamper-evident, HMAC-signed forensic certificates binding the leak to the source chunk, tenant ID, and prompt hash.
+* **Enterprise SIEM Dispatchers**: Pluggable export to Webhooks (Slack/PagerDuty), CEF/Syslog (Splunk/Sentinel/QRadar), and OpenTelemetry Spans.
+* **Turnkey Framework Integrations**: Native zero-dependency adapters for LangChain, LlamaIndex, FastMCP, Knowledge Fabric, Intent Fabric, and OpenAI/LiteLLM streaming wrappers.
 * **Backward Compatible**: Full alias compatibility with `promptcanary` (`import canary_fabric as promptcanary`).
 
 ---
@@ -44,7 +47,7 @@ When enterprise applications connect Large Language Models (LLMs) or autonomous 
 
 Tested on AMD/Intel & Apple Silicon architectures scanning 64-bit cryptographic canary signatures over streaming token chunks:
 
-| Metric | Traditional Guardrails (NER/LLM) | CanaryFabric Streaming Watcher | Advantage |
+| Metric | Traditional Guardrails (NER/LLM) | Canary Fabric Streaming Watcher | Advantage |
 | :--- | :--- | :--- | :--- |
 | **Inspection Latency (Per Chunk)** | 180 ms – 1,200 ms | **3.12 µs (0.0031 ms)** | **50,000x Faster** |
 | **TTFT Degradation Tax** | +250 ms to +1.5 s | **< 0.05 ms** | **Zero perceptible delay** |
@@ -53,26 +56,26 @@ Tested on AMD/Intel & Apple Silicon architectures scanning 64-bit cryptographic 
 
 ---
 
-## 🏗️ Architecture Blueprint
+## 🏛️ Architecture Blueprint
 
 ```
-                               CANARYFABRIC RUNTIME ARCHITECTURE
+                               CANARY FABRIC RUNTIME ARCHITECTURE
 
-    [Enterprise Sources] ---> [Knowledge Fabric / RAG]
+    [Enterprise Sources] ---> [Knowledge Fabric / LangChain / LlamaIndex]
                                       |
                                       v
                          +--------------------------+
                          | Steganographic Watermark | (Zero-width Unicode \u200B-\uFEFF
-                         |    & Canary Inserter     |  + HMAC-SHA256 nonces)
+                         |    & Canary Inserter     |  + HMAC-SHA256 nonces / Synonyms)
                          +--------------------------+
                                       |
                                       v (Watermarked Chunks)
-                         [LLM Reasoning Engine]
+                         [LLM Reasoning & Agent Engine]
                                       |
-                                      v (Outbound SSE Token Stream)
+                                      v (Outbound SSE Tokens & Streaming Tool Arguments)
                          +--------------------------+
                          | Streaming Token Watcher  | (Sliding Ring Buffer Scanner
-                         |   (Egress Wire Proxy)    |  Latency tax: <0.005ms)
+                         |   (Egress Wire Proxy)    |  Latency tax: < 0.005 ms)
                          +--------------------------+
                                       |
                       [Is Canary Signature Detected?]
@@ -81,9 +84,9 @@ Tested on AMD/Intel & Apple Silicon architectures scanning 64-bit cryptographic 
                                v              v
                      [Passthrough]     [TRIPWIRE CIRCUIT BREAKER]
                            |                  |
-                           v                  +---> 1. Terminate Outbound Socket Instantly
-                    Normal User Stream        +---> 2. Emit Compliant Masked Error
-                                              +---> 3. Dispatch SIEM / Slack / PagerDuty Alert
+                           v                  +---> 1. Sever Outbound Socket Instantly
+                    Normal User Stream        +---> 2. Emit Compliant Masked Redaction
+                                              +---> 3. Dispatch SIEM / Slack / CEF Alert
                                               +---> 4. Sign Cryptographic Leak Certificate
 ```
 
@@ -138,86 +141,141 @@ for chunk in watcher.wrap_sync_stream(iter(llm_stream)):
 
 ---
 
-## 🔌 Ecosystem Integrations
+## 🔌 Ecosystem Framework Integrations
 
-### Knowledge Fabric Adapter
-Seamlessly integrate with [Knowledge Fabric](https://github.com/sagarv48/knowledge-fabric) hybrid evidence retrieval:
-
+### LangChain Integration
 ```python
-from canary_fabric import KnowledgeFabricCanaryAdapter
-
-kf_adapter = KnowledgeFabricCanaryAdapter(secret_key="shared_fabric_secret")
-watermarked_evidence, tokens = kf_adapter.watermark_evidence_package(
-    evidence_items=retrieved_chunks,
-    tenant_id="tenant_enterprise",
+from canary_fabric.adapters.langchain import (
+    CanaryRetriever,
+    CanaryDocumentTransformer,
+    CanaryCallbackHandler,
 )
+from canary_fabric import CircuitBreaker
+
+breaker = CircuitBreaker(secret_key="my_secret")
+
+# 1. Watermark documents automatically during retrieval
+retriever = CanaryRetriever(base_retriever=my_vector_retriever, secret_key="my_secret")
+docs = retriever.invoke("Find acquisition terms")
+
+# 2. Add callback to interrupt generation if canary leaks in tokens or tool inputs
+callback = CanaryCallbackHandler(circuit_breaker=breaker)
+response = llm.invoke("Summarize documents", config={"callbacks": [callback]})
+```
+
+### LlamaIndex Integration
+```python
+from canary_fabric.adapters.llamaindex import CanaryNodePostprocessor
+
+postprocessor = CanaryNodePostprocessor(secret_key="my_secret")
+query_engine = index.as_query_engine(node_postprocessors=[postprocessor])
+response = query_engine.query("What is the Q3 revenue?")
+```
+
+### OpenAI & LiteLLM Streaming Client Wrapper
+```python
+from openai import OpenAI
+from canary_fabric.adapters.openai import wrap_streaming_response
+from canary_fabric import CircuitBreaker
+
+client = OpenAI()
+breaker = CircuitBreaker(secret_key="my_secret")
+
+raw_stream = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "..."}],
+    stream=True,
+)
+
+# Safe streaming wrapper - severs socket instantly if canary leaks
+safe_stream = wrap_streaming_response(raw_stream, circuit_breaker=breaker)
+for chunk in safe_stream:
+    if chunk.choices[0].delta.content:
+        print(chunk.choices[0].delta.content, end="")
 ```
 
 ### FastMCP Tool Security Gate
-Protect FastMCP tools from outbound data exfiltration:
-
 ```python
 from canary_fabric import CircuitBreaker, canary_gate
 
 breaker = CircuitBreaker(secret_key="mcp_secret")
 
-
 @canary_gate(circuit_breaker=breaker)
 def execute_external_webhook(url: str, payload: dict) -> dict:
-    # If LLM attempts to pass watermarked context in payload,
-    # @canary_gate raises PermissionError and trips the circuit.
+    # If an agent attempts to leak watermarked context into external tool arguments,
+    # @canary_gate raises PermissionError and trips the breaker.
     return requests.post(url, json=payload).json()
 ```
 
 ---
 
-## 🌐 Streaming Reverse Proxy
+## 🛡️ Synthetic Red-Team Benchmark
 
-Run CanaryFabric as a wire-level streaming proxy in front of OpenAI, Anthropic, or LiteLLM:
+Run automated evaluations profiling canary survival and circuit breaker interception across 5 adversarial attack vectors (verbatim extraction, paraphrasing, summarization, translation, base64 obfuscation):
 
 ```bash
-# Start the streaming proxy
-canary-proxy --port 8080 --upstream https://api.openai.com --secret-key prod_master_secret
+canary-fabric eval --text "Confidential term sheet: Project Titan acquisition for $850M."
 ```
 
-Or deploy with Docker:
-
-```bash
-docker run -p 8080:8080 -e SECRET_KEY=prod_master_secret ghcr.io/sagarv48/canary-fabric:latest
+```
+           Synthetic Red-Team Adversarial Evaluation Report            
++-------------------+----------+------------------+-------------------+
+| Attack Vector     | Tripped? | Canary Retained? | Scan Latency (µs) |
+|-------------------+----------+------------------+-------------------|
+| direct_extraction | YES      | YES              | 26.89             |
+| paraphrase        | YES      | YES              | 16.14             |
+| summarization     | YES      | YES              | 7.94              |
+| translation       | YES      | YES              | 9.22              |
+| encoding_base64   | NO       | NO               | 0.91              |
++-------------------+----------+------------------+-------------------+
 ```
 
 ---
 
-## 🔍 Forensic Leak Certificates
+## 🌐 Wire-Level Streaming Reverse Proxy
 
-Every tripped circuit breaker generates a cryptographically signed `LeakCertificate`:
+Deploy Canary Fabric as a zero-trust streaming proxy in front of OpenAI, Anthropic, or LiteLLM endpoints:
 
-```json
-{
-  "certificate_id": "cf_inc_a6af703211a6",
-  "timestamp": "2026-09-28T17:15:00Z",
-  "tenant_id": "tenant_fintech_alpha",
-  "source_doc_id": "q3_acquisition_memo",
-  "source_chunk_id": "chunk_0",
-  "canary_token": "4B89FD0112EE5926",
-  "leak_channel": "llm_sse_stream",
-  "action_taken": "BLOCK_AND_SEVER",
-  "prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "signature": "c01ef78d5844035cc5fe027fd47e56546a6c514dec318c9e1a0f8894b893a124"
-}
+```bash
+# Start proxy with agent tool-call argument inspection
+canary-proxy --port 8080 --upstream https://api.openai.com --default-action block
+```
+
+Or deploy via Docker:
+
+```bash
+docker run -p 8080:8080 -e CANARY_UPSTREAM_URL=https://api.openai.com ghcr.io/sagarv48/canary-fabric:latest
+```
+
+---
+
+## 🔍 Forensic Leak Certificates & SIEM Exporters
+
+Every tripped breaker generates a tamper-evident `LeakCertificate` with an HMAC-SHA256 signature binding the breach to the tenant, document chunk ID, and prompt hash:
+
+```python
+from canary_fabric.forensics import IncidentVault, WebhookExporter, CEFExporter
+
+# Pluggable SIEM dispatching
+vault = IncidentVault(
+    exporters=[
+        WebhookExporter(endpoint_url="https://hooks.slack.com/services/...", signing_secret="key"),
+        CEFExporter(),  # Formats for Splunk, Microsoft Sentinel, and QRadar
+    ]
+)
 ```
 
 Verify certificate authenticity via CLI:
 
 ```bash
-canary-fabric cert-verify --file leak_cert.json --secret-key prod_master_secret
+canary-fabric verify --certificate-file leak_cert.json --secret-key prod_master_secret
 ```
 
 ---
 
 ## 🛠️ Ecosystem & Related Projects
 
-CanaryFabric forms the cryptographic security layer of the enterprise AI governance stack:
+Canary Fabric forms the cryptographic security layer of the enterprise AI governance stack:
 
 * 📚 [Knowledge Fabric](https://github.com/sagarv48/knowledge-fabric): Vendor-neutral, governance-first hybrid evidence retrieval platform with pgvector + BM25 RRF and Row-Level Security.
 * 🛡️ [Intent Fabric](https://github.com/sagarv48/intent-fabric): Policy-governed autonomous agent planning and cryptographic action verification.
@@ -227,6 +285,6 @@ CanaryFabric forms the cryptographic security layer of the enterprise AI governa
 
 ## 📄 License
 
-CanaryFabric is licensed under the [Apache 2.0 License](LICENSE).
+Canary Fabric is licensed under the [Apache 2.0 License](LICENSE).
 
 Developed with ❤️ by [Vinay Kumar Ksheera Sagar](https://github.com/sagarv48).
