@@ -16,3 +16,19 @@ async def test_proxy_health():
         data = resp.json()
         assert data["status"] == "ok"
         assert data["service"] == "canary-fabric-proxy"
+
+
+@pytest.mark.asyncio
+async def test_proxy_rejects_untrusted_upstream():
+    app = create_proxy_app(upstream_url="https://api.openai.com", allowed_upstreams=["https://api.openai.com"])
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Caller tries to target an unauthorized internal metadata endpoint
+        resp = await client.post(
+            "/v1/chat/completions",
+            json={"messages": [{"role": "user", "content": "hi"}]},
+            headers={"x-upstream-url": "http://169.254.169.254/latest/meta-data"},
+        )
+        assert resp.status_code == 403
+        data = resp.json()
+        assert "Forbidden" in data["error"]

@@ -31,6 +31,32 @@ def test_knowledge_fabric_adapter():
     assert watermarked_items[0]["_canary_token"] == tokens[0]
 
 
+def test_knowledge_fabric_adapter_with_snippet():
+    import hashlib
+
+    adapter = KnowledgeFabricCanaryAdapter("kf_secret")
+    raw_snippet = "Confidential customer database excerpt."
+    original_hash = hashlib.sha256(raw_snippet.encode("utf-8")).hexdigest()
+    evidence_items = [
+        {
+            "document_uri": "policy_doc_v2",
+            "chunk_id": "chunk_42",
+            "snippet": raw_snippet,
+            "chunk_hash": original_hash,
+        },
+    ]
+
+    watermarked_items, tokens = adapter.watermark_evidence_package(evidence_items, "tenant_corp")
+    assert len(watermarked_items) == 1
+    assert "snippet" in watermarked_items[0]
+    assert watermarked_items[0]["snippet"] != raw_snippet
+    assert watermarked_items[0]["chunk_hash"] != original_hash
+    assert watermarked_items[0]["chunk_hash"] == hashlib.sha256(
+        watermarked_items[0]["snippet"].encode("utf-8")
+    ).hexdigest()
+    assert watermarked_items[0]["_canary_token"] == tokens[0]
+
+
 def test_intent_fabric_canary_gate():
     breaker = CircuitBreaker("secret")
     gate = IntentFabricCanaryGate(circuit_breaker=breaker)

@@ -25,22 +25,33 @@ class StreamWatcher:
         doc_id: str = "unknown_doc",
         chunk_id: str = "chunk_0",
         buffer_window_chars: int = 128,
+        holdback_chars: int = 0,
     ) -> None:
         self.breaker = circuit_breaker
         self.honeytoken_registry = honeytoken_registry or HoneytokenRegistry()
-        self.active_canary_tokens = active_canary_tokens or set()
+        self.active_canary_tokens = set(active_canary_tokens) if active_canary_tokens is not None else None
+        self.holdback_chars = holdback_chars
         self.tenant_id = tenant_id
         self.doc_id = doc_id
         self.chunk_id = chunk_id
         self.buffer_window_chars = buffer_window_chars
         self._sliding_buffer = ""
         self._tool_arg_buffer = ""
+        self._holdback_buffer = ""
         self._is_tripped = False
 
     @property
     def is_tripped(self) -> bool:
         """Return True if a tripwire has been tripped during this stream."""
         return self._is_tripped
+
+    def flush(self) -> str:
+        """Flush remaining held-back safe buffer when stream reaches EOF."""
+        if self._is_tripped:
+            return ""
+        remaining = self._holdback_buffer
+        self._holdback_buffer = ""
+        return remaining
 
     def scan_chunk(self, raw_chunk: str) -> tuple[str, bool, list[str]]:
         """Process an incoming streaming text chunk.
@@ -62,7 +73,9 @@ class StreamWatcher:
         extracted_tokens = WatermarkDecoder.extract_tokens(self._sliding_buffer)
         matched_tokens = []
         for token in extracted_tokens:
-            if not self.active_canary_tokens or token in self.active_canary_tokens:
+            if self.active_canary_tokens is None:
+                matched_tokens.append(token)
+            elif token in self.active_canary_tokens:
                 matched_tokens.append(token)
 
         # 2. Check for Synthetic Honeytokens
@@ -72,6 +85,7 @@ class StreamWatcher:
 
         if matched_tokens:
             self._is_tripped = True
+            self._holdback_buffer = ""  # Discard held-back prefix to prevent disclosure
             primary_token = matched_tokens[0]
 
             event = TripwireEvent(
@@ -83,6 +97,15 @@ class StreamWatcher:
             )
             _, replacement = self.breaker.handle_tripwire(event)
             return replacement, True, matched_tokens
+
+        if self.holdback_chars > 0:
+            self._holdback_buffer += raw_chunk
+            if len(self._holdback_buffer) > self.holdback_chars:
+                release_len = len(self._holdback_buffer) - self.holdback_chars
+                to_release = self._holdback_buffer[:release_len]
+                self._holdback_buffer = self._holdback_buffer[release_len:]
+                return to_release, False, []
+            return "", False, []
 
         return raw_chunk, False, []
 
@@ -111,7 +134,9 @@ class StreamWatcher:
         extracted_tokens = WatermarkDecoder.extract_tokens(self._tool_arg_buffer)
         matched_tokens = []
         for token in extracted_tokens:
-            if not self.active_canary_tokens or token in self.active_canary_tokens:
+            if self.active_canary_tokens is None:
+                matched_tokens.append(token)
+            elif token in self.active_canary_tokens:
                 matched_tokens.append(token)
 
         ht_matches = self.honeytoken_registry.find_matches(self._tool_arg_buffer)
@@ -143,14 +168,20 @@ class StreamWatcher:
         """Wrap a synchronous token iterator with active tripwire protection."""
         for chunk in stream_iterator:
             safe_chunk, tripped, _ = self.scan_chunk(chunk)
-            yield safe_chunk
+            if safe_chunk:
+                yield safe_chunk
             if tripped:
                 break
+        if not self._is_tripped and self._holdback_buffer:
+            yield self.flush()
 
     async def wrap_async_stream(self, stream_iterator: AsyncIterator[str]) -> AsyncIterator[str]:
         """Wrap an asynchronous token iterator with active tripwire protection."""
         async for chunk in stream_iterator:
             safe_chunk, tripped, _ = self.scan_chunk(chunk)
-            yield safe_chunk
+            if safe_chunk:
+                yield safe_chunk
             if tripped:
                 break
+        if not self._is_tripped and self._holdback_buffer:
+            yield self.flush()

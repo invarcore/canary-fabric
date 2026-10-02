@@ -49,13 +49,22 @@ class KnowledgeFabricCanaryAdapter:
         watermarked_items = []
         tokens = []
 
+        import hashlib
+
         for item in evidence_items:
-            doc_id = str(item.get("document_id", "doc_unknown"))
+            doc_id = str(
+                item.get("document_id")
+                or item.get("document_uri")
+                or item.get("source_uri")
+                or "doc_unknown"
+            )
             chunk_id = str(item.get("chunk_id", "chunk_0"))
-            content = str(item.get("content", ""))
+            has_snippet = "snippet" in item
+            has_content = "content" in item
+            raw_text = str(item.get("snippet") if has_snippet else item.get("content", ""))
 
             wm_content, token = self.watermark_chunk(
-                chunk_text=content,
+                chunk_text=raw_text,
                 tenant_id=tenant_id,
                 doc_id=doc_id,
                 chunk_id=chunk_id,
@@ -63,7 +72,13 @@ class KnowledgeFabricCanaryAdapter:
             )
 
             new_item = dict(item)
+            if has_snippet:
+                new_item["snippet"] = wm_content
             new_item["content"] = wm_content
+            if "chunk_hash" in item:
+                new_item["chunk_hash"] = hashlib.sha256(wm_content.encode("utf-8")).hexdigest()
+            elif "provenance_hash" in item:
+                new_item["chunk_hash"] = hashlib.sha256(wm_content.encode("utf-8")).hexdigest()
             new_item["_canary_token"] = token
             watermarked_items.append(new_item)
             tokens.append(token)

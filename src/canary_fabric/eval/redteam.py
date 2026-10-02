@@ -133,7 +133,7 @@ class RedTeamEvaluator:
             simulated_output=simulated_output,
             canary_retained_in_output=canary_retained,
             circuit_breaker_tripped=tripped,
-            exfiltration_blocked=tripped or not canary_retained,
+            exfiltration_blocked=tripped,
             scan_latency_us=round(latency_us, 2),
         )
 

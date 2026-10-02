@@ -99,3 +99,41 @@ def test_tool_call_delta_tripped():
     assert tripped is True
     assert token in matched
     assert "CANARY_FABRIC_TRIPWIRE_TRIGGERED" in safe_tc["function"]["arguments"]
+
+
+def test_empty_active_tokens_does_not_match_arbitrary_markers():
+    breaker = CircuitBreaker("secret_key", default_action=BreakerAction.BLOCK_AND_SEVER)
+    arbitrary_token = "DEADBEEF12345678"
+    framed_text = WatermarkEncoder.inject_watermark("Some regular text with a marker.", arbitrary_token)
+
+    # Empty active token set should NOT trip on arbitrary tokens
+    watcher = StreamWatcher(
+        circuit_breaker=breaker,
+        active_canary_tokens=set(),
+    )
+    output = list(watcher.wrap_sync_stream(iter([framed_text])))
+    assert len(output) == 1
+    assert watcher.is_tripped is False
+    assert breaker.state.value == "closed"
+
+
+def test_streaming_holdback_prevents_leaking_prefix():
+    breaker = CircuitBreaker("secret_key", default_action=BreakerAction.BLOCK_AND_SEVER)
+    token = "A1B2C3D4E5F67890"
+    confidential_prefix = "The secret acquisition target is Acme Corp."
+    watermarked = WatermarkEncoder.inject_watermark(confidential_prefix, token, strategy="suffix")
+
+    # With holdback buffer of 64 chars, the confidential prefix should be held back
+    # and when the marker trips the breaker, the prefix is never yielded!
+    watcher = StreamWatcher(
+        circuit_breaker=breaker,
+        active_canary_tokens={token},
+        holdback_chars=64,
+    )
+    chunks = [watermarked[i : i + 8] for i in range(0, len(watermarked), 8)]
+    yielded_chunks = list(watcher.wrap_sync_stream(iter(chunks)))
+
+    combined = "".join(yielded_chunks)
+    assert "Acme Corp" not in combined
+    assert "SECURITY ALERT" in combined
+    assert watcher.is_tripped is True
