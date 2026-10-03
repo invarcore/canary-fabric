@@ -273,6 +273,26 @@ canary-fabric verify --certificate-file leak_cert.json --secret-key prod_master_
 
 ---
 
+## 🧪 Testing & Quality Verification
+
+Canary Fabric maintains rigorous test coverage (≥95%) with enforced CI quality gates and hermetic Docker testing:
+
+```bash
+# Run unit & integration tests with coverage reporting
+uv run pytest -v --cov=canary_fabric --cov-report=term-missing --cov-fail-under=90
+
+# Run live functional streaming smoke test (Local hermetic simulator)
+uv run python benchmarks/live_watermark_smoke_test.py
+
+# Optional: Run live streaming verification against OpenRouter Cloud Free Tier
+uv run python benchmarks/live_watermark_smoke_test.py --openrouter
+
+# Run hermetic test suite and smoke test in Docker Compose
+docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
+```
+
+---
+
 ## 🛠️ Ecosystem & Related Projects
 
 Canary Fabric forms the cryptographic security layer of the enterprise AI governance stack:

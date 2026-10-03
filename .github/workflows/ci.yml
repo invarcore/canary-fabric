@@ -30,5 +30,15 @@ jobs:
       - name: Lint with ruff
         run: uv run ruff check .
 
-      - name: Run tests with pytest
-        run: uv run pytest -v
+      - name: Run tests with pytest and coverage enforcement (>=90%)
+        run: uv run pytest -v --cov=canary_fabric --cov-report=term-missing --cov-fail-under=90
+
+      - name: Run live functional smoke test
+        run: uv run python benchmarks/live_watermark_smoke_test.py
+
+  docker-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Hermetic Docker Compose Test
+        run: docker compose -f docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from smoke-test

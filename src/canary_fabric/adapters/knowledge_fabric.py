@@ -60,7 +60,6 @@ class KnowledgeFabricCanaryAdapter:
             )
             chunk_id = str(item.get("chunk_id", "chunk_0"))
             has_snippet = "snippet" in item
-            has_content = "content" in item
             raw_text = str(item.get("snippet") if has_snippet else item.get("content", ""))
 
             wm_content, token = self.watermark_chunk(

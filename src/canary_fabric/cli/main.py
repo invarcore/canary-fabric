@@ -102,10 +102,10 @@ def honeytoken(token_type: str, tenant_id: str, doc_id: str) -> None:
     """Generate realistic synthetic decoy credentials for document honeypots."""
     mapping = {
         "api_key": HoneytokenType.API_KEY,
-        "database_uri": HoneytokenType.DATABASE_URI,
-        "aws_secret": HoneytokenType.AWS_SECRET,
-        "jwt": HoneytokenType.JWT_TOKEN,
-        "email": HoneytokenType.CANARY_EMAIL,
+        "database_uri": HoneytokenType.DB_URI,
+        "aws_secret": HoneytokenType.API_KEY,
+        "jwt": HoneytokenType.JWT_SECRET,
+        "email": HoneytokenType.EMAIL,
     }
     ht_type = mapping.get(token_type, HoneytokenType.API_KEY)
     generator = HoneytokenGenerator()

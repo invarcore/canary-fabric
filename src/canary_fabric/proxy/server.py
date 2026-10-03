@@ -19,6 +19,7 @@ def create_proxy_app(
     allowed_upstreams: list[str] | None = None,
     active_canary_tokens: set[str] | None = None,
     stream_holdback_chars: int = 32,
+    http_client: httpx.AsyncClient | None = None,
 ) -> FastAPI:
     """Create a FastAPI application acting as a wire-level canary egress gateway."""
     import secrets
@@ -38,18 +39,20 @@ def create_proxy_app(
         configured_upstreams.update(u.strip().rstrip("/") for u in env_allowed.split(",") if u.strip())
 
     # Reusable HTTP client pool across lifespan
-    http_client: httpx.AsyncClient | None = None
+    _pool_client: httpx.AsyncClient | None = http_client
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        nonlocal http_client
-        http_client = httpx.AsyncClient(
-            timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=60.0),
-            limits=httpx.Limits(max_keepalive_connections=50, max_connections=200),
-        )
-        yield
-        if http_client:
-            await http_client.aclose()
+        nonlocal _pool_client
+        if _pool_client is None:
+            _pool_client = httpx.AsyncClient(
+                timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=60.0),
+                limits=httpx.Limits(max_keepalive_connections=50, max_connections=200),
+            )
+            yield
+            await _pool_client.aclose()
+        else:
+            yield
 
     app = FastAPI(
         title="Canary Fabric Reverse Proxy",
@@ -99,7 +102,7 @@ def create_proxy_app(
         is_stream = body.get("stream", False)
         tenant_id = headers.get("x-tenant-id", "default_tenant")
 
-        client = http_client or httpx.AsyncClient(timeout=60.0)
+        client = _pool_client or http_client or httpx.AsyncClient(timeout=60.0)
 
         # -------------------------------------------------------------
         # Non-Streaming Mode

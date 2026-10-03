@@ -32,3 +32,6 @@ venv.bak/
 *.sqlite3
 *.db
 *.code-workspace
+.coverage
+.coverage.*
+htmlcov/

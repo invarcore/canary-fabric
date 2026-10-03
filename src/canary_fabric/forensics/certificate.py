@@ -33,6 +33,11 @@ class LeakCertificate(BaseModel):
         description="HMAC-SHA256 signature guaranteeing certificate non-repudiation",
     )
 
+    @property
+    def incident_id(self) -> str:
+        """Alias for certificate_id for telemetry and exporter compatibility."""
+        return self.certificate_id
+
     def sign(self, secret_key: str) -> "LeakCertificate":
         """Compute and set the HMAC-SHA256 signature for this certificate."""
         payload = self.model_dump(exclude={"signature"})
