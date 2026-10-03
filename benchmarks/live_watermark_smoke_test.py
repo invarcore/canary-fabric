@@ -214,6 +214,16 @@ async def run_openrouter_streaming_smoke_test(model: str) -> bool:
                 avg_us = sum(latencies) / len(latencies)
                 print(f"⏱️  Average In-Line Inspection Overhead: {avg_us:.2f} µs")
 
+            # Turn 2: Adversarial Canary Exfiltration & Circuit Breaker Verification
+            print("\n[Turn 2] Live Tripwire Exfiltration Interception...")
+            zw_canary = WatermarkEncoder.encode_hex_to_zerowidth(token)
+            test_leak_chunk = f"Exfiltrated payload token {zw_canary} from cloud model."
+            safe_out, tripped, cert = watcher.scan_chunk(test_leak_chunk)
+            assert tripped is True, "Circuit breaker must trip on active canary token!"
+            assert cert is not None, "LeakCertificate must be generated upon tripwire detection!"
+            print(f"   🚨 Leak Detected! Certificate ID: {cert.certificate_id} (Token: {cert.leak_token[:12]}...)")
+            print(f"   🛡️  Redacted Stream Output: '{safe_out}'")
+
             print("\n" + "=" * 70)
             print("🎉 OPENROUTER LIVE STREAMING VERIFICATION PASSED!")
             print("=" * 70)
