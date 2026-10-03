@@ -185,3 +185,77 @@ class StreamWatcher:
                 break
         if not self._is_tripped and self._holdback_buffer:
             yield self.flush()
+
+
+class SlidingWindowStreamBuffer(StreamWatcher):
+    """Zero-leak sliding-window lookahead stream buffer (Rank 2: CAN-01/CAN-02).
+
+    Buffers streaming chunks in a k-lookahead window to guarantee that partial
+    tokens, split credentials, or watermarks cannot escape to the client before
+    full detection passes complete.
+
+    Attributes:
+        lookahead_window: Number of characters to retain in the lookahead buffer (default: 64).
+        credential_patterns: Optional regex patterns for high-entropy secrets (AWS, JWT, Private Keys).
+    """
+
+    def __init__(
+        self,
+        circuit_breaker: CircuitBreaker,
+        honeytoken_registry: HoneytokenRegistry | None = None,
+        active_canary_tokens: set[str] | None = None,
+        tenant_id: str = "default_tenant",
+        doc_id: str = "unknown_doc",
+        chunk_id: str = "chunk_0",
+        buffer_window_chars: int = 256,
+        lookahead_window: int = 64,
+        credential_patterns: list[str] | None = None,
+    ) -> None:
+        super().__init__(
+            circuit_breaker=circuit_breaker,
+            honeytoken_registry=honeytoken_registry,
+            active_canary_tokens=active_canary_tokens,
+            tenant_id=tenant_id,
+            doc_id=doc_id,
+            chunk_id=chunk_id,
+            buffer_window_chars=buffer_window_chars,
+            holdback_chars=lookahead_window,
+        )
+        self.lookahead_window = lookahead_window
+        import re
+
+        self._compiled_patterns = [
+            re.compile(p, re.IGNORECASE)
+            for p in (
+                credential_patterns
+                or [
+                    r"\b(AKIA[0-9A-Z]{16})\b",
+                    r"\b(sk-[A-Za-z0-9_\-]{20,})\b",
+                    r"-----BEGIN [A-Z0-9_ -]*PRIVATE KEY-----",
+                    r"(Bearer\s+)[A-Za-z0-9_\-\.]{16,}",
+                ]
+            )
+        ]
+
+    def scan_chunk(self, raw_chunk: str) -> tuple[str, bool, list[str]]:
+        safe_chunk, tripped, tokens = super().scan_chunk(raw_chunk)
+        if tripped:
+            return safe_chunk, True, tokens
+
+        for pattern in self._compiled_patterns:
+            match = pattern.search(self._sliding_buffer)
+            if match:
+                self._is_tripped = True
+                self._holdback_buffer = ""
+                leak_snippet = match.group(0)
+                event = TripwireEvent(
+                    canary_token="CREDENTIAL_LEAK",
+                    tenant_id=self.tenant_id,
+                    source_doc_id=self.doc_id,
+                    source_chunk_id=self.chunk_id,
+                    matched_text_snippet=leak_snippet,
+                )
+                _, replacement = self.breaker.handle_tripwire(event)
+                return replacement, True, [leak_snippet]
+
+        return safe_chunk, False, []

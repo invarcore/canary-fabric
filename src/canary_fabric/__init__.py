@@ -47,7 +47,7 @@ from canary_fabric.forensics.exporters import (
 )
 from canary_fabric.forensics.vault import IncidentVault
 from canary_fabric.proxy.server import create_proxy_app
-from canary_fabric.proxy.streamer import StreamWatcher
+from canary_fabric.proxy.streamer import SlidingWindowStreamBuffer, StreamWatcher
 
 __version__ = "0.2.0"
 
@@ -82,6 +82,7 @@ __all__ = [
     "CEFExporter",
     "OpenTelemetryExporter",
     # Proxy
+    "SlidingWindowStreamBuffer",
     "StreamWatcher",
     "create_proxy_app",
     # Adapters

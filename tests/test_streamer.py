@@ -7,7 +7,7 @@ from canary_fabric.core.honeytoken import (
     HoneytokenType,
 )
 from canary_fabric.core.watermark import WatermarkEncoder
-from canary_fabric.proxy.streamer import StreamWatcher
+from canary_fabric.proxy.streamer import SlidingWindowStreamBuffer, StreamWatcher
 
 
 def test_clean_stream_passthrough():
@@ -137,3 +137,63 @@ def test_streaming_holdback_prevents_leaking_prefix():
     assert "Acme Corp" not in combined
     assert "SECURITY ALERT" in combined
     assert watcher.is_tripped is True
+
+
+def test_sliding_window_stream_buffer_credential_leak_blocked():
+    breaker = CircuitBreaker("secret_key", default_action=BreakerAction.BLOCK_AND_SEVER)
+    buffer = SlidingWindowStreamBuffer(
+        circuit_breaker=breaker,
+        lookahead_window=32,
+    )
+
+    chunks = [
+        "Diagnostics report: ",
+        "AWS credentials found in environment: ",
+        "AKIA",
+        "IOSFODNN7EXAMPLE",
+        " which must remain secret.",
+    ]
+    yielded = list(buffer.wrap_sync_stream(iter(chunks)))
+    combined = "".join(yielded)
+
+    # Crucial check: AKIAIOSFODNN7EXAMPLE must NEVER be yielded
+    assert "AKIAIOSFODNN7EXAMPLE" not in combined
+    assert "AKIA" not in combined
+    assert "SECURITY ALERT: CanaryFabric Circuit Breaker Tripped" in combined
+    assert buffer.is_tripped is True
+    assert breaker.state.value == "tripped"
+
+
+def test_sliding_window_stream_buffer_clean_passthrough():
+    breaker = CircuitBreaker("secret_key", default_action=BreakerAction.BLOCK_AND_SEVER)
+    buffer = SlidingWindowStreamBuffer(
+        circuit_breaker=breaker,
+        lookahead_window=16,
+    )
+
+    chunks = ["System ", "status ", "all ", "operational."]
+    yielded = list(buffer.wrap_sync_stream(iter(chunks)))
+    assert "".join(yielded) == "System status all operational."
+    assert buffer.is_tripped is False
+    assert breaker.state.value == "closed"
+
+
+def test_sliding_window_stream_buffer_private_key_blocked():
+    breaker = CircuitBreaker("secret_key", default_action=BreakerAction.BLOCK_AND_SEVER)
+    buffer = SlidingWindowStreamBuffer(
+        circuit_breaker=breaker,
+        lookahead_window=32,
+    )
+
+    chunks = [
+        "Dumping cert: ",
+        "-----BEGIN RSA ",
+        "PRIVATE KEY-----",
+        "\nMIIEowIBAAKCAQEA...",
+    ]
+    yielded = list(buffer.wrap_sync_stream(iter(chunks)))
+    combined = "".join(yielded)
+
+    assert "PRIVATE KEY" not in combined
+    assert "SECURITY ALERT" in combined
+    assert buffer.is_tripped is True

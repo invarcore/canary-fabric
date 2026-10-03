@@ -1,0 +1,52 @@
+UNITED STATES SECURITIES AND EXCHANGE COMMISSION
+Washington, D.C. 20549
+FORM 10-K
+
+ANNUAL REPORT PURSUANT TO SECTION 13 OR 15(d) OF THE SECURITIES EXCHANGE ACT OF 1934
+For the Fiscal Year Ended December 31, 2025
+
+PART I — ITEM 1A. RISK FACTORS
+
+Our global operations and financial results are subject to numerous risks and uncertainties, including macroeconomic headwinds, geopolitical instability, rapid technological disruptions, and evolving regulatory frameworks. Any of the following factors could materially and adversely affect our business, reputation, financial condition, cash flows, and operating margins.
+
+Risks Related to Cybersecurity, Information Security, and Artificial Intelligence Systems
+
+We experience cyberattacks of varying degrees of sophistication on our internal corporate infrastructure, cloud environments, and customer-facing software applications on an ongoing basis. These malicious attempts include sophisticated distributed denial-of-service (DDoS) campaigns, credential stuffing, spear-phishing, supply chain tampering, and zero-day exploits targeting third-party software dependencies. As enterprise workflows increasingly integrate autonomous artificial intelligence (AI) agents, large language models (LLMs), and automated decision pipelines, our threat surface expands significantly.
+
+If threat actors successfully compromise our authentication boundaries, tamper with training data, inject malicious instructions through prompt manipulation, or exfiltrate proprietary customer data, we could incur substantial remediation costs, regulatory fines, and reputational injury. Furthermore, under newly enacted cybersecurity reporting standards (including SEC Regulation S-K Item 106 and equivalent cross-border directives), we are required to disclose material cybersecurity incidents within four business days of determining materiality. Any delay, mischaracterization, or perceived failure in our incident disclosure obligations could trigger formal enforcement actions by securities regulators and substantial shareholder derivative litigation.
+
+Risks Related to Intellectual Property, Proprietary Model Weights, and Model Exfiltration
+
+The value of our technological ecosystem depends substantially upon our proprietary source code, foundational model weights, and custom inference algorithms. Unauthorized exfiltration of model weights or intellectual property through insider threats, compromised developer credentials, or insecure external application programming interfaces (APIs) could erode our technological advantage. We employ multi-layered cryptographic safeguards, zero-trust network architectures, hardware security modules (HSMs), and steganographic data loss prevention (DLP) watermarking across proprietary research documents to identify unauthorized information leakage and trace forensic provenance. However, no security architecture is impervious to state-sponsored persistent threats or sophisticated advanced persistent threat (APT) groups.
+
+PART II — ITEM 7. MANAGEMENT’S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS
+
+Overview of Consolidated Fiscal Results
+
+The following table summarizes our consolidated financial results for the three years ended December 31, 2025, 2024, and 2023 (in millions, except percentages):
+
+| Metric | 2025 | 2024 | 2023 | YoY Change (25 vs 24) |
+| :--- | :--- | :--- | :--- | :--- |
+| Cloud Infrastructure Revenue | $41,250 | $33,800 | $26,100 | +22.0% |
+| Enterprise AI Platform Services | $18,920 | $11,400 | $4,850 | +66.0% |
+| Developer Tools & Subscriptions | $9,310 | $8,150 | $7,200 | +14.2% |
+| Total Consolidated Revenues | $69,480 | $53,350 | $38,150 | +30.2% |
+| Gross Margin Percentage | 68.4% | 66.8% | 64.5% | +160 bps |
+| Research & Development Expense | $19,840 | $15,620 | $12,100 | +27.0% |
+| Operating Income | $22,410 | $16,880 | $10,950 | +32.8% |
+| Effective Tax Rate | 16.2% | 15.8% | 14.9% | +40 bps |
+| Diluted Earnings Per Share (EPS) | $6.84 | $5.12 | $3.28 | +33.6% |
+
+Consolidated revenue expanded by 30.2% year-over-year to $69,480 million in fiscal year 2025, driven by accelerating enterprise adoption of high-performance accelerated computing clusters and generative AI inference infrastructure. Enterprise AI Platform Services experienced remarkable growth of 66.0%, reflecting strong enterprise retention and multi-year commit contracts across Fortune 500 customers.
+
+Liquidity and Capital Resources
+
+As of December 31, 2025, our total cash, cash equivalents, and marketable securities stood at $34,810 million, compared to $28,450 million as of December 31, 2024. Operating cash flows generated during fiscal 2025 totaled $29,650 million, an increase of 26.5% compared to $23,440 million in fiscal 2024. Capital expenditures totaled $14,200 million, primarily dedicated to server hardware acquisitions, data center power infrastructure buildouts, and low-latency optical interconnect network fabric.
+
+Management believes that existing cash balances, projected cash flows from operations, and revolving credit facilities will be sufficient to meet working capital requirements, anticipated debt maturities, and planned capital investments for at least the next twelve months and the foreseeable future.
+
+CRITICAL ACCOUNTING ESTIMATES AND REVENUE RECOGNITION POLICIES
+
+Our consolidated financial statements are prepared in accordance with U.S. Generally Accepted Accounting Principles (U.S. GAAP). Preparation requires management to formulate complex estimates and assumptions that influence reported asset valuations, liability provisions, and revenue schedules.
+
+Under ASC Topic 606 (Revenue from Contracts with Customers), revenue is recognized upon transfer of control of promised goods or services to enterprise customers in an amount that reflects the consideration we expect to be entitled to receive in exchange for those products. For multi-element software licensing agreements that combine cloud compute capacity, technical account management, and proprietary algorithmic updates, management applies relative standalone selling price (SSP) allocations based on observable historical discounting distributions and cost-plus-margin methodologies.
