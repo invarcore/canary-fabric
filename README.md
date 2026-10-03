@@ -34,7 +34,8 @@ When enterprise applications connect Large Language Models (LLMs) or autonomous 
 
 * **4-ary Zero-Width Steganography**: Injects 64-bit HMAC-derived canary tokens (`\u200B`, `\u200C`, `\u200D`, `\uFEFF`) invisibly into retrieved chunks. They are 100% invisible to human reviewers and preserved through LLM tokenization.
 * **Tokenizer-Resilient Semantic Micro-Synonyms**: Keyed pseudo-random synonym substitution with statistical binomial confidence testing ($p < 0.001$) for environments that strip zero-width characters.
-* **Sub-Millisecond (<0.8ms) Stream Circuit Breaker**: Scans outbound Server-Sent Events (SSE) and partial agent tool-call argument JSON in real-time with a zero-buffering sliding ring buffer, severing the socket before secret data leaves the boundary.
+* **Sliding-Window Stream Buffer (`SlidingWindowStreamBuffer`)**: Lookahead ring buffer that inspects outbound token streams and tool-call JSON in real time, severing connections before honeytokens or confidential data can leak over the wire.
+* **Sub-Millisecond (<0.8ms) Stream Circuit Breaker**: Scans outbound Server-Sent Events (SSE) and partial agent tool-call argument JSON in real-time with sub-millisecond overhead.
 * **Synthetic Honeytokens**: Generates realistic decoy credentials (`sk_live_canary_...`, postgres connection strings, canary emails) for honeypot documents.
 * **Cryptographic Leak Certificates**: Issues tamper-evident, HMAC-signed forensic certificates binding the leak to the source chunk, tenant ID, and prompt hash.
 * **Enterprise SIEM Dispatchers**: Pluggable export to Webhooks (Slack/PagerDuty), CEF/Syslog (Splunk/Sentinel/QRadar), and OpenTelemetry Spans.
@@ -275,7 +276,10 @@ canary-fabric verify --certificate-file leak_cert.json --secret-key prod_master_
 
 ## 🧪 Testing & Quality Verification
 
-Canary Fabric maintains rigorous test coverage (≥95%) with enforced CI quality gates and hermetic Docker testing:
+Canary Fabric maintains rigorous test coverage (≥92% gated in CI) and a zero-live-HTTP CI architecture:
+
+- **Tier 1 (Golden Corpus Fixtures)**: Real-world public financial disclosures (Apple and Alphabet SEC Form 10-K filings) checked into `tests/fixtures/corpora/` for deterministic, offline, sub-second CI validation.
+- **Tier 2 (Opt-in Live Harness)**: Live streaming verification against OpenRouter cloud models (`benchmarks/live_watermark_smoke_test.py --openrouter`).
 
 ```bash
 # Run unit & integration tests with coverage reporting
