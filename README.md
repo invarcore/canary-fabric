@@ -9,10 +9,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/sagarv48/canary-fabric/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
+  <a href="https://github.com/invarcore/canary-fabric/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="https://pypi.org/project/canary-fabric/"><img src="https://img.shields.io/badge/PyPI-canary--fabric-3776AB?logo=pypi&logoColor=white" alt="PyPI"></a>
-  <a href="https://github.com/sagarv48/canary-fabric/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
-  <a href="https://github.com/sagarv48/canary-fabric/releases"><img src="https://img.shields.io/badge/Release-v0.2.0-blue.svg" alt="Release"></a>
+  <a href="https://github.com/invarcore/canary-fabric/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
+  <a href="https://github.com/invarcore/canary-fabric/releases"><img src="https://img.shields.io/badge/Release-v0.2.0-blue.svg" alt="Release"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-Native%20Security-purple.svg" alt="MCP Native"></a>
 </p>
 
@@ -245,7 +245,7 @@ canary-proxy --port 8080 --upstream https://api.openai.com --default-action bloc
 Or deploy via Docker:
 
 ```bash
-docker run -p 8080:8080 -e CANARY_UPSTREAM_URL=https://api.openai.com ghcr.io/sagarv48/canary-fabric:latest
+docker run -p 8080:8080 -e CANARY_UPSTREAM_URL=https://api.openai.com ghcr.io/invarcore/canary-fabric:latest
 ```
 
 ---
@@ -301,9 +301,9 @@ docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
 
 Canary Fabric forms the cryptographic security layer of the enterprise AI governance stack:
 
-* 📚 [Knowledge Fabric](https://github.com/sagarv48/knowledge-fabric): Vendor-neutral, governance-first hybrid evidence retrieval platform with pgvector + BM25 RRF and Row-Level Security.
-* 🛡️ [Intent Fabric](https://github.com/sagarv48/intent-fabric): Policy-governed autonomous agent planning and cryptographic action verification.
-* ⏪ [Unloop](https://github.com/sagarv48/unloop): The interactive time-travel debugger and anti-oscillation watchdog for AI agents.
+* 📚 [Knowledge Fabric](https://github.com/invarcore/knowledge-fabric): Vendor-neutral, governance-first hybrid evidence retrieval platform with pgvector + BM25 RRF and Row-Level Security.
+* 🛡️ [Intent Fabric](https://github.com/invarcore/intent-fabric): Policy-governed autonomous agent planning and cryptographic action verification.
+* ⏪ [Unloop](https://github.com/invarcore/unloop): The interactive time-travel debugger and anti-oscillation watchdog for AI agents.
 
 ---
 
