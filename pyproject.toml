@@ -21,6 +21,13 @@ dependencies = [
   "click>=8.1.0"
 ]
 
+[project.urls]
+Homepage = "https://invarcore.com"
+Documentation = "https://invarcore.com"
+Repository = "https://github.com/invarcore/canary-fabric"
+"Bug Tracker" = "https://github.com/invarcore/canary-fabric/issues"
+"Technical Whitepapers" = "https://invarcore.com/#whitepapers"
+
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0.0",

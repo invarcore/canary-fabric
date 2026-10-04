@@ -10,6 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/invarcore/canary-fabric/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
+  <a href="https://invarcore.com"><img src="https://img.shields.io/badge/Website-invarcore.com-0284C7?logo=googlechrome&logoColor=white" alt="Invarcore Website"></a>
   <a href="https://pypi.org/project/canary-fabric/"><img src="https://img.shields.io/badge/PyPI-canary--fabric-3776AB?logo=pypi&logoColor=white" alt="PyPI"></a>
   <a href="https://github.com/invarcore/canary-fabric/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
   <a href="https://github.com/invarcore/canary-fabric/releases"><img src="https://img.shields.io/badge/Release-v0.2.0-blue.svg" alt="Release"></a>
@@ -306,6 +307,17 @@ Canary Fabric forms the cryptographic security layer of the enterprise AI govern
 * ⏪ [Unloop](https://github.com/invarcore/unloop): The interactive time-travel debugger and anti-oscillation watchdog for AI agents.
 
 ---
+
+---
+
+## 🏛️ Invarcore Verification Fabric
+
+This engine is part of the **[Invarcore](https://invarcore.com)** enterprise verification fabric. Invarcore develops mathematical invariants, cryptographic policy contracts, and execution runtimes for autonomous AI systems.
+
+* **Official Website & Architecture**: [https://invarcore.com](https://invarcore.com)
+* **Technical Whitepapers & Invariant Specs**: [https://invarcore.com/#whitepapers](https://invarcore.com/#whitepapers)
+* **GitHub Organization**: [https://github.com/invarcore](https://github.com/invarcore)
+* **Security & Vulnerability Disclosure**: [security@invarcore.com](mailto:security@invarcore.com)
 
 ## 📄 License
 
