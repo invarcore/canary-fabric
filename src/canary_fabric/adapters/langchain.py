@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """LangChain integration for Canary Fabric: DocumentTransformer, Retriever, and CallbackHandler."""
 
 from collections.abc import Sequence

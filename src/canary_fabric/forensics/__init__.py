@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Cryptographic leak certificates, tamper-evident vaults, and SIEM exporters."""
 
 from canary_fabric.forensics.certificate import LeakCertificate

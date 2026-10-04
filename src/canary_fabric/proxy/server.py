@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """FastAPI-based streaming reverse proxy for LLM endpoints (OpenAI / Anthropic / LiteLLM)."""
 
 import json

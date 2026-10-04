@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Circuit breaker and active tripwire alerting."""
 
 from canary_fabric.breaker.alerter import IncidentAlerter

@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Native adapter for Knowledge Fabric evidence chunks and RAG pipelines."""
 
 from typing import Any

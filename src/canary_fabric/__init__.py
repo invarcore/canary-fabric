@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Canary Fabric: Invisible Cryptographic Tripwires and Sub-Millisecond Egress Circuit Breakers for AI."""
 
 import sys

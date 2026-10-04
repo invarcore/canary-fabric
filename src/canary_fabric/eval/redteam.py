@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Synthetic adversarial red-team evaluation suite for Canary Fabric tripwires."""
 
 import base64

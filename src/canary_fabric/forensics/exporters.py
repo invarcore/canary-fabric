@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Enterprise SIEM, Webhook, and Observability Exporters for Canary Fabric."""
 
 import hashlib

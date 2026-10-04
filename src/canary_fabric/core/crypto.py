@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Cryptographic operations, HMAC token derivation, and tamper-evident signing."""
 
 import hashlib

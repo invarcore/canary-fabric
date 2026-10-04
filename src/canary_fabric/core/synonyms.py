@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Keyed semantic micro-synonym steganography for tokenizer-resilient canary tripwires."""
 
 import hashlib

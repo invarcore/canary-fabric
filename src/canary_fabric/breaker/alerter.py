@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Multi-channel incident alerting and SIEM dispatcher."""
 
 import asyncio

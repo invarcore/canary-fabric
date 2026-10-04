@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """FastMCP Tool Decorator and Security Gate."""
 
 import functools

@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Ecosystem adapters for Knowledge Fabric, Intent Fabric, FastMCP, LangChain, LlamaIndex, and OpenAI."""
 
 from canary_fabric.adapters.fastmcp import canary_gate

@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Core cryptographic, steganographic, and honeytoken primitives for Canary Fabric."""
 
 from canary_fabric.core.crypto import (

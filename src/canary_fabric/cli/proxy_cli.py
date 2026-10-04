@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """CLI runner for the CanaryFabric streaming reverse proxy."""
 
 import click

@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Circuit breaker and active egress gate for canary tripwire detection."""
 
 import secrets

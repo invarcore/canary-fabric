@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """LlamaIndex integration for Canary Fabric: NodePostprocessor for RAG query engines."""
 
 from typing import Any

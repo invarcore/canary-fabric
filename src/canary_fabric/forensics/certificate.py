@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Cryptographic Leak Certificates for tamper-evident data leak forensic attribution."""
 
 from datetime import UTC, datetime

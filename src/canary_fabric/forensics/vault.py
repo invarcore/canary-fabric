@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """SQLite WAL-backed Incident Vault for persistent tamper-evident forensic logging."""
 
 import json

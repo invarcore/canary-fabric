@@ -1,3 +1,6 @@
+# Copyright 2026 Invarcore Organization
+# SPDX-License-Identifier: Apache-2.0
+
 """Native adapter for Intent Fabric step execution and action parameter gating."""
 
 import json
