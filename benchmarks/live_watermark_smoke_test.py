@@ -159,7 +159,7 @@ async def run_openrouter_streaming_smoke_test(model: str) -> bool:
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://github.com/sagarv48/canary-fabric",
+        "HTTP-Referer": "https://github.com/invarcore/canary-fabric",
         "X-Title": "CanaryFabric Smoke Test",
     }
     payload = {

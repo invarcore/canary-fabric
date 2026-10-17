@@ -30,7 +30,7 @@ def main():
 
     console.print("[bold]1. Calling FastMCP Tool with Safe Parameters:[/bold]")
     res = query_external_api(
-        url="https://api.github.com/repos/sagarv48/canary-fabric",
+        url="https://api.github.com/repos/invarcore/canary-fabric",
         headers={"Authorization": "Bearer gh_token_123"},
         payload="clean_data",
     )

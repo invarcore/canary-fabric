@@ -6,7 +6,7 @@ Thank you for your interest in contributing to CanaryFabric! This document provi
 
 ```bash
 # Clone the repository
-git clone https://github.com/sagarv48/canary-fabric.git
+git clone https://github.com/invarcore/canary-fabric.git
 cd canary-fabric
 
 # Create a virtual environment and install dependencies
