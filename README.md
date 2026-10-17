@@ -19,6 +19,34 @@
 
 ---
 
+## ⚡ 60-Second Quickstart
+
+Try zero-overhead tripwires & circuit breakers right now with zero external services or API keys required:
+
+```bash
+# 1. Clone & enter repository
+git clone https://github.com/invarcore/canary-fabric.git && cd canary-fabric
+
+# 2. Install dependencies (or: uv sync)
+pip install -e .
+
+# 3. Run the self-contained 60-second tripwire & leak interception demo
+python examples/quickstart.py
+```
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Canary Fabric — 60-Second Zero-Trust Tripwire & Circuit Breaker             │
+│ Deterministic, sub-millisecond egress guardrails for RAG & autonomous AI    │
+└─────────────────────────────────────────────────────────────────────────────┘
+  ✔ PASSED  -> Sure, here is the confidential document snippet:
+  ✖ SEVERED -> [SECURITY ALERT: CanaryFabric Circuit Breaker Tripped]
+  ✓ Tamper-Evident Forensic Leak Certificate Generated (HMAC-SHA256 authenticated)
+  • Scan Latency: 17.73 µs (< 0.05 ms TTFT degradation tax)
+```
+
+---
+
 ## 🛡️ The Problem: Stealthy RAG Exfiltration & Indirect Prompt Injections
 
 When enterprise applications connect Large Language Models (LLMs) or autonomous agents to private knowledge bases (wikis, HR records, customer PII, financial ledgers), **Indirect Prompt Injection** and **Context Leakage** represent critical zero-day threats:
