@@ -60,7 +60,9 @@ async def run_local_streaming_smoke_test() -> bool:
     )
     watermarked_text = WatermarkEncoder.inject_watermark(raw_confidential_text, token)
     print(f"   🔒 Original Text Length:    {len(raw_confidential_text)} chars")
-    print(f"   🔒 Watermarked Text Length: {len(watermarked_text)} chars (invisible zero-width bytes injected)")
+    print(
+        f"   🔒 Watermarked Text Length: {len(watermarked_text)} chars (invisible zero-width bytes injected)"
+    )
     assert WatermarkDecoder.contains_watermark(watermarked_text, token)
     print("   ✅ Watermark verified with zero-width decoder.")
 
@@ -80,8 +82,16 @@ async def run_local_streaming_smoke_test() -> bool:
     # Simulate a stream that starts clean, then an adversarial attacker induces the model
     # to emit the confidential watermarked chunk.
     stream_tokens = [
-        "Based ", "on ", "internal ", "records, ", "here ", "is ", "the ", "confidential ",
-        "acquisition ", "details: ",
+        "Based ",
+        "on ",
+        "internal ",
+        "records, ",
+        "here ",
+        "is ",
+        "the ",
+        "confidential ",
+        "acquisition ",
+        "details: ",
         watermarked_text,
         " Additional unreached tokens that should be severed...",
     ]
@@ -106,7 +116,9 @@ async def run_local_streaming_smoke_test() -> bool:
             print(f"   • Chunk #{idx} [Safe]: '{chunk.strip()}' (Latency: {elapsed_us:.2f} µs)")
 
     avg_latency = sum(latencies_us) / len(latencies_us)
-    print(f"\n   ⏱️  Average Per-Chunk Latency Tax: {avg_latency:.2f} µs ({avg_latency / 1000.0:.4f} ms)")
+    print(
+        f"\n   ⏱️  Average Per-Chunk Latency Tax: {avg_latency:.2f} µs ({avg_latency / 1000.0:.4f} ms)"
+    )
     assert avg_latency < 800.0, f"Latency tax exceeded budget: {avg_latency} µs"
     assert tripped_chunk is not None, "Tripwire failed to intercept exfiltration!"
 
@@ -121,7 +133,9 @@ async def run_local_streaming_smoke_test() -> bool:
     print(f"   📜 Timestamp:      {cert.timestamp}")
 
     is_authentic = cert.verify(secret_key)
-    print(f"   🔏 Cryptographic Signature Authenticity: {'VALID (Authentic)' if is_authentic else 'INVALID'}")
+    print(
+        f"   🔏 Cryptographic Signature Authenticity: {'VALID (Authentic)' if is_authentic else 'INVALID'}"
+    )
     assert is_authentic, "Tamper-evident verification failed!"
 
     print("\n" + "=" * 70)
@@ -181,7 +195,9 @@ async def run_openrouter_streaming_smoke_test(model: str) -> bool:
             async with client.stream("POST", url, json=payload, headers=headers) as resp:
                 if resp.status_code != 200:
                     body = await resp.aread()
-                    print(f"❌ OpenRouter API returned status {resp.status_code}: {body.decode('utf-8', errors='ignore')}")
+                    print(
+                        f"❌ OpenRouter API returned status {resp.status_code}: {body.decode('utf-8', errors='ignore')}"
+                    )
                     print("   Falling back to local streaming test...")
                     return await run_local_streaming_smoke_test()
 
@@ -221,7 +237,9 @@ async def run_openrouter_streaming_smoke_test(model: str) -> bool:
             safe_out, tripped, cert = watcher.scan_chunk(test_leak_chunk)
             assert tripped is True, "Circuit breaker must trip on active canary token!"
             assert cert is not None, "LeakCertificate must be generated upon tripwire detection!"
-            print(f"   🚨 Leak Detected! Certificate ID: {cert.certificate_id} (Token: {cert.leak_token[:12]}...)")
+            print(
+                f"   🚨 Leak Detected! Certificate ID: {cert.certificate_id} (Token: {cert.leak_token[:12]}...)"
+            )
             print(f"   🛡️  Redacted Stream Output: '{safe_out}'")
 
             print("\n" + "=" * 70)
@@ -237,7 +255,9 @@ async def run_openrouter_streaming_smoke_test(model: str) -> bool:
 
 def main():
     parser = argparse.ArgumentParser(description="Canary Fabric Live Smoke Test")
-    parser.add_argument("--openrouter", action="store_true", help="Run against OpenRouter free tier")
+    parser.add_argument(
+        "--openrouter", action="store_true", help="Run against OpenRouter free tier"
+    )
     parser.add_argument("--model", default="openrouter/free", help="Model name for OpenRouter")
     args = parser.parse_args()
 

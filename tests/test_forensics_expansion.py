@@ -73,7 +73,9 @@ def test_vault_exporter_exception_resilience():
 
 def test_webhook_exporter_sync_and_async():
     # Sync export with exception handling
-    exporter = WebhookExporter("http://invalid-nonexistent-domain.test:9999/webhook", signing_secret="key123")
+    exporter = WebhookExporter(
+        "http://invalid-nonexistent-domain.test:9999/webhook", signing_secret="key123"
+    )
     cert = LeakCertificate(
         certificate_id="cert_wh",
         tenant_id="t1",
@@ -96,7 +98,9 @@ def test_webhook_exporter_sync_and_async():
 
 @pytest.mark.asyncio
 async def test_webhook_exporter_async():
-    exporter = WebhookExporter("http://invalid-nonexistent-domain.test:9999/webhook", signing_secret="key123")
+    exporter = WebhookExporter(
+        "http://invalid-nonexistent-domain.test:9999/webhook", signing_secret="key123"
+    )
     cert = LeakCertificate(
         certificate_id="cert_wh_async",
         tenant_id="t1",

@@ -3,12 +3,17 @@
 
 """Ultra-low-latency streaming SSE token watcher with sliding ring-buffer inspection."""
 
+from __future__ import annotations
+
+import re
 import time
 from collections.abc import AsyncIterator, Iterator
 from typing import Any
 
 from canary_fabric.breaker.circuit import CircuitBreaker, TripwireEvent
 from canary_fabric.core.honeytoken import HoneytokenRegistry
+from canary_fabric.core.lexical import CanaryMode, LexicalCanaryMatcher
+from canary_fabric.core.synonyms import SemanticWatermarker
 from canary_fabric.core.watermark import WatermarkDecoder
 
 
@@ -17,6 +22,8 @@ class StreamWatcher:
 
     Inspects both standard conversational content tokens and partial streaming JSON
     parameters in agent tool/function calls to prevent context exfiltration.
+    Supports zero-width steganography, non-steganographic lexical tripwires,
+    and hybrid defense-in-depth modes.
     """
 
     def __init__(
@@ -29,18 +36,28 @@ class StreamWatcher:
         chunk_id: str = "chunk_0",
         buffer_window_chars: int = 128,
         holdback_chars: int = 0,
+        canary_mode: CanaryMode | str = CanaryMode.HYBRID,
+        synonym_watermarker: SemanticWatermarker | None = None,
+        secret_key: str | None = None,
     ) -> None:
         self.breaker = circuit_breaker
         self.honeytoken_registry = honeytoken_registry or HoneytokenRegistry()
-        self.active_canary_tokens = set(active_canary_tokens) if active_canary_tokens is not None else None
+        self.active_canary_tokens = (
+            set(active_canary_tokens) if active_canary_tokens is not None else None
+        )
         self.holdback_chars = holdback_chars
         self.tenant_id = tenant_id
         self.doc_id = doc_id
         self.chunk_id = chunk_id
         self.buffer_window_chars = buffer_window_chars
+        self.canary_mode = CanaryMode(canary_mode) if isinstance(canary_mode, str) else canary_mode
+        self.synonym_watermarker = synonym_watermarker
+        self.secret_key = secret_key
+
         self._sliding_buffer = ""
         self._tool_arg_buffer = ""
         self._holdback_buffer = ""
+        self._accumulated_stream_text = ""
         self._is_tripped = False
 
     @property
@@ -72,19 +89,44 @@ class StreamWatcher:
         if len(self._sliding_buffer) > self.buffer_window_chars * 2:
             self._sliding_buffer = self._sliding_buffer[-self.buffer_window_chars :]
 
-        # 1. Check for Zero-Width Watermark Tokens
-        extracted_tokens = WatermarkDecoder.extract_tokens(self._sliding_buffer)
-        matched_tokens = []
-        for token in extracted_tokens:
-            if self.active_canary_tokens is None:
-                matched_tokens.append(token)
-            elif token in self.active_canary_tokens:
-                matched_tokens.append(token)
+        matched_tokens: list[str] = []
 
-        # 2. Check for Synthetic Honeytokens
-        ht_matches = self.honeytoken_registry.find_matches(self._sliding_buffer)
-        for ht in ht_matches:
-            matched_tokens.append(ht.value)
+        # 1. Check for Zero-Width Watermark Tokens (if STEGO or HYBRID)
+        if self.canary_mode in (CanaryMode.STEGO, CanaryMode.HYBRID):
+            extracted_tokens = WatermarkDecoder.extract_tokens(self._sliding_buffer)
+            for token in extracted_tokens:
+                if self.active_canary_tokens is None:
+                    matched_tokens.append(token)
+                elif token in self.active_canary_tokens:
+                    matched_tokens.append(token)
+
+        # 2. Check for Synthetic Honeytokens & Lexical Sentinels (if LEXICAL or HYBRID)
+        if self.canary_mode in (CanaryMode.LEXICAL, CanaryMode.HYBRID):
+            ht_matches = self.honeytoken_registry.find_matches(self._sliding_buffer)
+            for ht in ht_matches:
+                matched_tokens.append(ht.value)
+
+            lex_matches = LexicalCanaryMatcher.find_lexical_matches(
+                self._sliding_buffer,
+                known_tokens=self.active_canary_tokens,
+            )
+            for lm in lex_matches:
+                if lm not in matched_tokens:
+                    matched_tokens.append(lm)
+
+            # Check statistical micro-synonyms if enabled
+            if self.synonym_watermarker and self.secret_key:
+                self._accumulated_stream_text += raw_chunk
+                words = self._accumulated_stream_text.split()
+                if len(words) >= self.synonym_watermarker.min_slots:
+                    syn_res = self.synonym_watermarker.detect(
+                        text=self._accumulated_stream_text,
+                        secret_key=self.secret_key,
+                        tenant_id=self.tenant_id,
+                        doc_id=self.doc_id,
+                    )
+                    if syn_res.is_detected:
+                        matched_tokens.append(f"SYNONYM_WATERMARK_LEAK(p={syn_res.p_value:.6f})")
 
         if matched_tokens:
             self._is_tripped = True
@@ -134,17 +176,30 @@ class StreamWatcher:
         if len(self._tool_arg_buffer) > self.buffer_window_chars * 2:
             self._tool_arg_buffer = self._tool_arg_buffer[-self.buffer_window_chars :]
 
-        extracted_tokens = WatermarkDecoder.extract_tokens(self._tool_arg_buffer)
-        matched_tokens = []
-        for token in extracted_tokens:
-            if self.active_canary_tokens is None:
-                matched_tokens.append(token)
-            elif token in self.active_canary_tokens:
-                matched_tokens.append(token)
+        matched_tokens: list[str] = []
 
-        ht_matches = self.honeytoken_registry.find_matches(self._tool_arg_buffer)
-        for ht in ht_matches:
-            matched_tokens.append(ht.value)
+        # 1. Check for Zero-Width Watermark Tokens (if STEGO or HYBRID)
+        if self.canary_mode in (CanaryMode.STEGO, CanaryMode.HYBRID):
+            extracted_tokens = WatermarkDecoder.extract_tokens(self._tool_arg_buffer)
+            for token in extracted_tokens:
+                if self.active_canary_tokens is None:
+                    matched_tokens.append(token)
+                elif token in self.active_canary_tokens:
+                    matched_tokens.append(token)
+
+        # 2. Check for Synthetic Honeytokens & Lexical Sentinels (if LEXICAL or HYBRID)
+        if self.canary_mode in (CanaryMode.LEXICAL, CanaryMode.HYBRID):
+            ht_matches = self.honeytoken_registry.find_matches(self._tool_arg_buffer)
+            for ht in ht_matches:
+                matched_tokens.append(ht.value)
+
+            lex_matches = LexicalCanaryMatcher.find_lexical_matches(
+                self._tool_arg_buffer,
+                known_tokens=self.active_canary_tokens,
+            )
+            for lm in lex_matches:
+                if lm not in matched_tokens:
+                    matched_tokens.append(lm)
 
         if matched_tokens:
             self._is_tripped = True
@@ -213,6 +268,9 @@ class SlidingWindowStreamBuffer(StreamWatcher):
         buffer_window_chars: int = 256,
         lookahead_window: int = 64,
         credential_patterns: list[str] | None = None,
+        canary_mode: CanaryMode | str = CanaryMode.HYBRID,
+        synonym_watermarker: SemanticWatermarker | None = None,
+        secret_key: str | None = None,
     ) -> None:
         super().__init__(
             circuit_breaker=circuit_breaker,
@@ -223,9 +281,11 @@ class SlidingWindowStreamBuffer(StreamWatcher):
             chunk_id=chunk_id,
             buffer_window_chars=buffer_window_chars,
             holdback_chars=lookahead_window,
+            canary_mode=canary_mode,
+            synonym_watermarker=synonym_watermarker,
+            secret_key=secret_key,
         )
         self.lookahead_window = lookahead_window
-        import re
 
         self._compiled_patterns = [
             re.compile(p, re.IGNORECASE)

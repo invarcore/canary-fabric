@@ -91,13 +91,17 @@ class WatermarkDecoder:
 
         # Also inspect potential base64 encoded strings for concealed tokens
         import base64
+
         for b64_match in re.finditer(r"[A-Za-z0-9+/]{16,}={0,2}", text):
             candidate = b64_match.group()
             try:
                 padded = candidate + "=" * (-len(candidate) % 4)
                 decoded_bytes = base64.b64decode(padded)
                 decoded_text = decoded_bytes.decode("utf-8", errors="ignore")
-                if any(c in decoded_text for c in ("\u200e", "\u200f", "\u200b", "\u200c", "\u200d", "\ufeff")):
+                if any(
+                    c in decoded_text
+                    for c in ("\u200e", "\u200f", "\u200b", "\u200c", "\u200d", "\ufeff")
+                ):
                     for sub_token in cls._extract_from_text(decoded_text):
                         if sub_token not in tokens:
                             tokens.append(sub_token)

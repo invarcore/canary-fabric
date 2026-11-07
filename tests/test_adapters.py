@@ -51,9 +51,10 @@ def test_knowledge_fabric_adapter_with_snippet():
     assert "snippet" in watermarked_items[0]
     assert watermarked_items[0]["snippet"] != raw_snippet
     assert watermarked_items[0]["chunk_hash"] != original_hash
-    assert watermarked_items[0]["chunk_hash"] == hashlib.sha256(
-        watermarked_items[0]["snippet"].encode("utf-8")
-    ).hexdigest()
+    assert (
+        watermarked_items[0]["chunk_hash"]
+        == hashlib.sha256(watermarked_items[0]["snippet"].encode("utf-8")).hexdigest()
+    )
     assert watermarked_items[0]["_canary_token"] == tokens[0]
 
 

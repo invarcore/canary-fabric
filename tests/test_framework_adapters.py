@@ -88,9 +88,11 @@ def test_langchain_document_transformer():
 
 
 def test_langchain_retriever():
-    mock_retriever = MockRetriever([
-        MockDocument("Acquisition details for Beta Corp.", {"id": "acq_beta"}),
-    ])
+    mock_retriever = MockRetriever(
+        [
+            MockDocument("Acquisition details for Beta Corp.", {"id": "acq_beta"}),
+        ]
+    )
     canary_retriever = CanaryRetriever(
         base_retriever=mock_retriever,
         secret_key="test_secret",
@@ -159,7 +161,9 @@ def test_openai_stream_wrapper():
         MockChunk(" extra text that should not appear."),
     ]
 
-    wrapped = wrap_streaming_response(mock_chunks, circuit_breaker=breaker, tenant_id="tenant_stream")
+    wrapped = wrap_streaming_response(
+        mock_chunks, circuit_breaker=breaker, tenant_id="tenant_stream"
+    )
     yielded = list(wrapped)
 
     # The 3rd chunk should be redacted and the 4th should never be yielded

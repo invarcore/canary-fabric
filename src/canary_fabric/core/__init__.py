@@ -15,6 +15,12 @@ from canary_fabric.core.honeytoken import (
     HoneytokenRegistry,
     HoneytokenType,
 )
+from canary_fabric.core.lexical import (
+    CanaryMode,
+    LexicalCanaryInjector,
+    LexicalCanaryMatcher,
+    LexicalCanaryToken,
+)
 from canary_fabric.core.synonyms import (
     DEFAULT_SYNONYM_PAIRS,
     DetectionResult,
@@ -24,11 +30,15 @@ from canary_fabric.core.watermark import WatermarkDecoder, WatermarkEncoder
 
 __all__ = [
     "DEFAULT_SYNONYM_PAIRS",
+    "CanaryMode",
     "DetectionResult",
     "Honeytoken",
     "HoneytokenGenerator",
     "HoneytokenRegistry",
     "HoneytokenType",
+    "LexicalCanaryInjector",
+    "LexicalCanaryMatcher",
+    "LexicalCanaryToken",
     "SemanticWatermarker",
     "WatermarkDecoder",
     "WatermarkEncoder",

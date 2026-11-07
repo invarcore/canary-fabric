@@ -27,11 +27,7 @@ def create_proxy_app(
     """Create a FastAPI application acting as a wire-level canary egress gateway."""
     import secrets
 
-    actual_secret = (
-        secret_key
-        or os.environ.get("CANARY_SECRET_KEY")
-        or secrets.token_hex(32)
-    )
+    actual_secret = secret_key or os.environ.get("CANARY_SECRET_KEY") or secrets.token_hex(32)
 
     configured_upstreams: set[str] = set()
     if allowed_upstreams:
@@ -39,7 +35,9 @@ def create_proxy_app(
     configured_upstreams.add(upstream_url.rstrip("/"))
     env_allowed = os.environ.get("CANARY_ALLOWED_UPSTREAMS")
     if env_allowed:
-        configured_upstreams.update(u.strip().rstrip("/") for u in env_allowed.split(",") if u.strip())
+        configured_upstreams.update(
+            u.strip().rstrip("/") for u in env_allowed.split(",") if u.strip()
+        )
 
     # Reusable HTTP client pool across lifespan
     _pool_client: httpx.AsyncClient | None = http_client

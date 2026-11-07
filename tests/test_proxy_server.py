@@ -20,7 +20,9 @@ async def test_proxy_health():
 
 @pytest.mark.asyncio
 async def test_proxy_rejects_untrusted_upstream():
-    app = create_proxy_app(upstream_url="https://api.openai.com", allowed_upstreams=["https://api.openai.com"])
+    app = create_proxy_app(
+        upstream_url="https://api.openai.com", allowed_upstreams=["https://api.openai.com"]
+    )
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         # Caller tries to target an unauthorized internal metadata endpoint

@@ -44,7 +44,9 @@ def test_zero_width_watermark_injection_and_extraction() -> None:
     assert len(watermarked_text) > len(original_text)
     # The clean visible characters should match
     cleaned_visible = "".join(
-        c for c in watermarked_text if c not in ("\u200e", "\u200f", "\u200b", "\u200c", "\u200d", "\ufeff")
+        c
+        for c in watermarked_text
+        if c not in ("\u200e", "\u200f", "\u200b", "\u200c", "\u200d", "\ufeff")
     )
     assert cleaned_visible == original_text
 

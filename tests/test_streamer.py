@@ -104,7 +104,9 @@ def test_tool_call_delta_tripped():
 def test_empty_active_tokens_does_not_match_arbitrary_markers():
     breaker = CircuitBreaker("secret_key", default_action=BreakerAction.BLOCK_AND_SEVER)
     arbitrary_token = "DEADBEEF12345678"
-    framed_text = WatermarkEncoder.inject_watermark("Some regular text with a marker.", arbitrary_token)
+    framed_text = WatermarkEncoder.inject_watermark(
+        "Some regular text with a marker.", arbitrary_token
+    )
 
     # Empty active token set should NOT trip on arbitrary tokens
     watcher = StreamWatcher(

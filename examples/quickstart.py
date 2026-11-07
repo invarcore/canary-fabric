@@ -68,9 +68,15 @@ def run_quickstart() -> bool:
     table.add_column("Property", style="bold cyan")
     table.add_column("Value", style="white")
     table.add_row("Raw Chunk", raw_doc)
-    table.add_row("HMAC Canary Token", f"[yellow]{canary_token}[/yellow] (64-bit HMAC-SHA256 signature)")
-    table.add_row("Zero-Width Injected", "[green]True[/green] (Invisible to humans, preserved through LLMs)")
-    table.add_row("Decoy Honeytoken", f"[magenta]{honeytoken}[/magenta] (Simulated live credential)")
+    table.add_row(
+        "HMAC Canary Token", f"[yellow]{canary_token}[/yellow] (64-bit HMAC-SHA256 signature)"
+    )
+    table.add_row(
+        "Zero-Width Injected", "[green]True[/green] (Invisible to humans, preserved through LLMs)"
+    )
+    table.add_row(
+        "Decoy Honeytoken", f"[magenta]{honeytoken}[/magenta] (Simulated live credential)"
+    )
     console.print(table)
 
     # Step 3: Simulate Streaming Adversarial Prompt Injection Attack

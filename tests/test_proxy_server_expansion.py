@@ -48,7 +48,9 @@ async def test_proxy_non_streaming_clean_passthrough():
 @pytest.mark.asyncio
 async def test_proxy_non_streaming_watermarked_content_blocked():
     token = derive_canary_token("secret", "tenant_corp", "doc_confidential", "chunk_1")
-    leaked_content = WatermarkEncoder.inject_watermark("Confidential acquisition price is $500M.", token)
+    leaked_content = WatermarkEncoder.inject_watermark(
+        "Confidential acquisition price is $500M.", token
+    )
 
     upstream_response_data = {
         "id": "chatcmpl-124",
@@ -88,7 +90,10 @@ async def test_proxy_non_streaming_watermarked_content_blocked():
 @pytest.mark.asyncio
 async def test_proxy_non_streaming_tool_call_blocked():
     token = derive_canary_token("secret", "tenant_corp", "doc_db", "chunk_0")
-    leaked_args = json.dumps({"query": WatermarkEncoder.inject_watermark("SELECT * FROM secret_table", token)}, ensure_ascii=False)
+    leaked_args = json.dumps(
+        {"query": WatermarkEncoder.inject_watermark("SELECT * FROM secret_table", token)},
+        ensure_ascii=False,
+    )
 
     upstream_response_data = {
         "id": "chatcmpl-125",
@@ -137,16 +142,20 @@ async def test_proxy_non_streaming_tool_call_blocked():
 @pytest.mark.asyncio
 async def test_proxy_streaming_clean_with_flush():
     chunks = [
-        ': ping\n\n',
+        ": ping\n\n",
         'data: {"choices": []}\n\n',
         'data: {"id": "c1", "choices": [{"index": 0, "delta": {"content": "First token "}}]}\n\n',
         'data: {"id": "c2", "choices": [{"index": 0, "delta": {"content": "second token."}}]}\n\n',
-        'data: invalid-json-line\n\n',
-        'data: [DONE]\n\n',
+        "data: invalid-json-line\n\n",
+        "data: [DONE]\n\n",
     ]
 
     def mock_handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, content="".join(chunks).encode("utf-8"), headers={"content-type": "text/event-stream"})
+        return httpx.Response(
+            200,
+            content="".join(chunks).encode("utf-8"),
+            headers={"content-type": "text/event-stream"},
+        )
 
     mock_client = AsyncClient(transport=MockTransport(mock_handler))
     app = create_proxy_app(
@@ -176,11 +185,15 @@ async def test_proxy_streaming_watermark_trip():
         'data: {"id": "c1", "choices": [{"index": 0, "delta": {"content": "Here is the data: "}}]}\n\n',
         f'data: {{"id": "c2", "choices": [{{"index": 0, "delta": {{"content": "{wm_chunk}"}}}}]}}\n\n',
         'data: {"id": "c3", "choices": [{"index": 0, "delta": {"content": " trailing content"}}]}\n\n',
-        'data: [DONE]\n\n',
+        "data: [DONE]\n\n",
     ]
 
     def mock_handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, content="".join(chunks).encode("utf-8"), headers={"content-type": "text/event-stream"})
+        return httpx.Response(
+            200,
+            content="".join(chunks).encode("utf-8"),
+            headers={"content-type": "text/event-stream"},
+        )
 
     mock_client = AsyncClient(transport=MockTransport(mock_handler))
     app = create_proxy_app(
@@ -211,11 +224,15 @@ async def test_proxy_streaming_tool_call_trip():
 
     chunks = [
         f'data: {{"id": "c1", "choices": [{{"index": 0, "delta": {{"tool_calls": [{{"id": "call_99", "type": "function", "function": {{"name": "fetch", "arguments": "{wm_args}"}}}}]}}}}]}}\n\n',
-        'data: [DONE]\n\n',
+        "data: [DONE]\n\n",
     ]
 
     def mock_handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, content="".join(chunks).encode("utf-8"), headers={"content-type": "text/event-stream"})
+        return httpx.Response(
+            200,
+            content="".join(chunks).encode("utf-8"),
+            headers={"content-type": "text/event-stream"},
+        )
 
     mock_client = AsyncClient(transport=MockTransport(mock_handler))
     app = create_proxy_app(

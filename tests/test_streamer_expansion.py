@@ -20,7 +20,9 @@ def test_wrap_sync_stream_clean_and_tripped():
     assert "".join(res) == "Hello world, this is safe text."
 
     # Tripped stream
-    tripped_watcher = StreamWatcher(circuit_breaker=breaker, active_canary_tokens={token}, holdback_chars=0)
+    tripped_watcher = StreamWatcher(
+        circuit_breaker=breaker, active_canary_tokens={token}, holdback_chars=0
+    )
     bad_chunks = ["Normal intro. ", wm_text, " this should be cut off."]
     tripped_res = list(tripped_watcher.wrap_sync_stream(iter(bad_chunks)))
     joined = "".join(tripped_res)
@@ -47,7 +49,9 @@ async def test_wrap_async_stream_clean_and_tripped():
     assert "".join(res) == "Async token stream done."
 
     # Tripped async stream
-    tripped_watcher = StreamWatcher(circuit_breaker=breaker, active_canary_tokens={token}, holdback_chars=0)
+    tripped_watcher = StreamWatcher(
+        circuit_breaker=breaker, active_canary_tokens={token}, holdback_chars=0
+    )
     bad_chunks = ["Start stream. ", wm_text, " suffix that is pruned."]
     tripped_res = []
     async for item in tripped_watcher.wrap_async_stream(async_gen(bad_chunks)):
@@ -60,7 +64,9 @@ def test_tool_call_delta_edge_cases():
     token = derive_canary_token("secret", "tenant_tool", "doc_tool", "chunk_0")
     wm_arg = WatermarkEncoder.inject_watermark("admin_password_123", token)
 
-    watcher = StreamWatcher(circuit_breaker=breaker, active_canary_tokens={token}, buffer_window_chars=128)
+    watcher = StreamWatcher(
+        circuit_breaker=breaker, active_canary_tokens={token}, buffer_window_chars=128
+    )
 
     # Empty arguments in delta
     delta_empty = {"function": {"arguments": ""}}

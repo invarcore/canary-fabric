@@ -230,6 +230,7 @@ from canary_fabric import CircuitBreaker, canary_gate
 
 breaker = CircuitBreaker(secret_key="mcp_secret")
 
+
 @canary_gate(circuit_breaker=breaker)
 def execute_external_webhook(url: str, payload: dict) -> dict:
     # If an agent attempts to leak watermarked context into external tool arguments,

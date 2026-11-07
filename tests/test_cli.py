@@ -23,7 +23,15 @@ def test_cli_watermark_command():
     runner = CliRunner()
     result = runner.invoke(
         canary_main,
-        ["watermark", "-t", "Project Pegasus confidential budget is $50M.", "--tenant-id", "corp_a", "--doc-id", "doc_99"],
+        [
+            "watermark",
+            "-t",
+            "Project Pegasus confidential budget is $50M.",
+            "--tenant-id",
+            "corp_a",
+            "--doc-id",
+            "doc_99",
+        ],
     )
     assert result.exit_code == 0
     assert "Canary Token Generated & Injected Successfully" in result.output
@@ -51,7 +59,10 @@ def test_cli_inspect_clean_and_watermarked():
 def test_cli_honeytoken_types():
     runner = CliRunner()
     for ht_type in ["api_key", "database_uri", "aws_secret", "jwt", "email"]:
-        res = runner.invoke(canary_main, ["honeytoken", "-k", ht_type, "--tenant-id", "corp_x", "--doc-id", "target_doc"])
+        res = runner.invoke(
+            canary_main,
+            ["honeytoken", "-k", ht_type, "--tenant-id", "corp_x", "--doc-id", "target_doc"],
+        )
         assert res.exit_code == 0
         assert "Synthetic Honeytoken Generated" in res.output
         assert "corp_x" in res.output
@@ -76,7 +87,9 @@ def test_cli_verify_certificate(tmp_path):
     cert_file.write_text(cert.to_canonical_json(), encoding="utf-8")
 
     # Verify valid
-    res_valid = runner.invoke(canary_main, ["verify", "-f", str(cert_file), "--secret-key", secret_key])
+    res_valid = runner.invoke(
+        canary_main, ["verify", "-f", str(cert_file), "--secret-key", secret_key]
+    )
     assert res_valid.exit_code == 0
     assert "AUTHENTIC FORENSIC PROOF: Signature Validated" in res_valid.output
 
@@ -86,7 +99,9 @@ def test_cli_verify_certificate(tmp_path):
     tampered_file = tmp_path / "tampered_cert.json"
     tampered_file.write_text(json.dumps(tampered_data), encoding="utf-8")
 
-    res_invalid = runner.invoke(canary_main, ["verify", "-f", str(tampered_file), "--secret-key", secret_key])
+    res_invalid = runner.invoke(
+        canary_main, ["verify", "-f", str(tampered_file), "--secret-key", secret_key]
+    )
     assert res_invalid.exit_code == 0
     assert "INVALID CERTIFICATE: Cryptographic Signature Mismatch!" in res_invalid.output
 
@@ -114,7 +129,9 @@ def test_proxy_cli():
     assert "Start the CanaryFabric streaming tripwire reverse proxy" in help_res.output
 
     with patch("uvicorn.run") as mock_run:
-        run_res = runner.invoke(proxy_main, ["--port", "9090", "--host", "127.0.0.1", "--action", "redact_and_continue"])
+        run_res = runner.invoke(
+            proxy_main, ["--port", "9090", "--host", "127.0.0.1", "--action", "redact_and_continue"]
+        )
         assert run_res.exit_code == 0
         assert mock_run.called
         assert "Starting CanaryFabric Reverse Proxy on 127.0.0.1:9090" in run_res.output

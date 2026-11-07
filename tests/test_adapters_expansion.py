@@ -133,7 +133,9 @@ def test_langchain_retriever_fallbacks():
         def get_relevant_documents(self, query: str, **kwargs):
             return [SimpleDoc("Retrieved doc content")]
 
-    retriever = CanaryRetriever(base_retriever=FallbackRetriever(), secret_key="secret", tenant_id="t1")
+    retriever = CanaryRetriever(
+        base_retriever=FallbackRetriever(), secret_key="secret", tenant_id="t1"
+    )
 
     # Test invoke fallback to get_relevant_documents
     docs = retriever.invoke("search query")
@@ -157,7 +159,9 @@ async def test_langchain_retriever_async_fallbacks():
         async def ainvoke(self, input: str, **kwargs):
             return [SimpleDoc("Async native invoke docs")]
 
-    r_native = CanaryRetriever(base_retriever=AsyncNativeRetriever(), secret_key="secret", tenant_id="t1")
+    r_native = CanaryRetriever(
+        base_retriever=AsyncNativeRetriever(), secret_key="secret", tenant_id="t1"
+    )
     docs_aget = await r_native.aget_relevant_documents("query")
     assert len(docs_aget) == 1
     docs_ainvoke = await r_native.ainvoke("query")
@@ -168,7 +172,9 @@ async def test_langchain_retriever_async_fallbacks():
         def get_relevant_documents(self, query: str, **kwargs):
             return [SimpleDoc("Sync fallback docs")]
 
-    r_sync = CanaryRetriever(base_retriever=SyncOnlyRetriever(), secret_key="secret", tenant_id="t1")
+    r_sync = CanaryRetriever(
+        base_retriever=SyncOnlyRetriever(), secret_key="secret", tenant_id="t1"
+    )
     docs_fallback_aget = await r_sync.aget_relevant_documents("query")
     assert len(docs_fallback_aget) == 1
     docs_fallback_ainvoke = await r_sync.ainvoke("query")
@@ -254,7 +260,9 @@ def test_watermark_strategies_and_edge_cases():
     assert WatermarkDecoder.contains_watermark(suffix_wm, token)
 
     # Unknown strategy fallback
-    unknown_wm = WatermarkEncoder.inject_watermark("Sentence text.", token, strategy="unsupported_strat")
+    unknown_wm = WatermarkEncoder.inject_watermark(
+        "Sentence text.", token, strategy="unsupported_strat"
+    )
     assert WatermarkDecoder.contains_watermark(unknown_wm, token)
 
     # Empty text
@@ -286,7 +294,9 @@ def test_synonyms_casing_and_min_slots():
 
     # Case preservation: UPPERCASE and Capitalized
     text_with_casing = "We will COMMENCE the project and BEGIN operations swiftly."
-    wm_text, modified = watermarker.inject(text_with_casing, secret_key="k", tenant_id="t", doc_id="d")
+    wm_text, modified = watermarker.inject(
+        text_with_casing, secret_key="k", tenant_id="t", doc_id="d"
+    )
     assert modified >= 0
 
     # No synonym slots in text

@@ -203,7 +203,9 @@ def benchmark(iterations: int) -> None:
 def run_eval(text: str) -> None:
     """Run synthetic adversarial red-team benchmark across 5 attack vectors."""
     evaluator = RedTeamEvaluator()
-    console.print("[bold cyan]Evaluating tripwires against adversarial prompt injection attack suite...[/bold cyan]")
+    console.print(
+        "[bold cyan]Evaluating tripwires against adversarial prompt injection attack suite...[/bold cyan]"
+    )
     report = evaluator.run_suite(text)
 
     table = Table(title="Synthetic Red-Team Adversarial Evaluation Report", border_style="cyan")

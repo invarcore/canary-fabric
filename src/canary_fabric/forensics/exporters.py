@@ -58,7 +58,9 @@ class WebhookExporter(BaseIncidentExporter):
             with httpx.Client(timeout=self.timeout) as client:
                 client.post(self.endpoint_url, content=payload_bytes, headers=headers)
         except Exception as e:
-            logger.warning("Failed to dispatch webhook incident alert to %s: %s", self.endpoint_url, e)
+            logger.warning(
+                "Failed to dispatch webhook incident alert to %s: %s", self.endpoint_url, e
+            )
 
     async def aexport(self, certificate: LeakCertificate) -> None:
         """Asynchronously POST certificate payload to webhook endpoint."""
