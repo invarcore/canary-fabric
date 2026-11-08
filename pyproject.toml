@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "canary-fabric"
-version = "0.2.0"
+version = "0.2.1"
 description = "Invisible cryptographic tripwires and sub-millisecond data-leak circuit breakers for RAG and AI Agents."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
   { name = "Vinay Kumar Ksheera Sagar", email = "sagarv.kumar48@gmail.com" }
 ]
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 dependencies = [
   "fastapi>=0.110.0",
   "uvicorn>=0.28.0",

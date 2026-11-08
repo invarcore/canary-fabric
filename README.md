@@ -13,7 +13,7 @@
   <a href="https://invarcore.com"><img src="https://img.shields.io/badge/Website-invarcore.com-0284C7?logo=googlechrome&logoColor=white" alt="Invarcore Website"></a>
   <a href="https://pypi.org/project/canary-fabric/"><img src="https://img.shields.io/badge/PyPI-canary--fabric-3776AB?logo=pypi&logoColor=white" alt="PyPI"></a>
   <a href="https://github.com/invarcore/canary-fabric/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
-  <a href="https://github.com/invarcore/canary-fabric/releases"><img src="https://img.shields.io/badge/Release-v0.2.0-blue.svg" alt="Release"></a>
+  <a href="https://github.com/invarcore/canary-fabric/releases"><img src="https://img.shields.io/badge/Release-v0.2.1-blue.svg" alt="Release"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-Native%20Security-purple.svg" alt="MCP Native"></a>
 </p>
 
@@ -168,6 +168,55 @@ for chunk in watcher.wrap_sync_stream(iter(llm_stream)):
 # Output:
 # Here is the secret: [SECURITY ALERT: CanaryFabric Circuit Breaker Tripped - Confidential data exfiltration prevented. Incident ID: cf_inc_8f9a2b1c]
 ```
+
+---
+
+## ⚡ OWASP ASI08: Multi-Agent Blast Radius Circuit Breaker
+
+In autonomous multi-agent environments, a single compromised or looping agent can trigger high-velocity destructive mutations, cascading prompt injections, or DDoS external tool APIs (**OWASP ASI08: Excessive Agency & Uncontrolled Blast Radius**).
+
+`canary-fabric` provides sub-millisecond, sliding-window tool velocity monitoring and strike isolation per agent:
+
+```python
+from canary_fabric.breaker import (
+    BlastRadiusCircuitBreaker,
+    BlastRadiusExceededError,
+    AgentStrikeState,
+)
+
+# Initialize breaker: max 10 invocations per 5s window, 3 strikes before trip, 30s recovery cooldown
+breaker = BlastRadiusCircuitBreaker(
+    max_invocations_per_window=10,
+    window_seconds=5.0,
+    strike_threshold=3,
+    cooldown_seconds=30.0,
+    strike_decay_seconds=60.0,  # Strikes decay after quiet periods
+    max_tracked_agents=1000,  # Bounded memory preventing ephemeral agent leaks
+)
+
+agent_id = "agent_worker_42"
+
+# 1. Track invocations in real-time (<5 µs latency overhead)
+for step in range(10):
+    breaker.record_invocation(agent_id, tool_name="fetch_customer_record")
+
+# 2. Velocity spike triggers an injection/velocity strike
+try:
+    # 11th call within 5s window exceeds velocity limit
+    breaker.record_invocation(agent_id, tool_name="fetch_customer_record")
+except BlastRadiusExceededError as e:
+    print(f"Velocity strike recorded: {e}")
+
+# 3. If strikes reach threshold, the agent's circuit breaker TRIPS into OPEN state
+# All subsequent tool executions for agent_worker_42 are severed immediately:
+assert breaker.get_agent_state(agent_id) == AgentStrikeState.OPEN
+```
+
+### Blast Radius Guarantees
+- **Sliding-Window Velocity**: Rolling FIFO window tracking invocations per second without boundary jitter.
+- **Strike Decay**: Progressive recovery where strikes decay during quiet operational windows, preventing permanent lockout from transient spikes.
+- **Half-Open Probationary Recovery**: After `cooldown_seconds`, transitioning agents undergo a probationary trial before returning to `CLOSED` state.
+- **Ephemeral Agent Pruning**: Automatically prunes idle/dead agents beyond `max_tracked_agents`, ensuring deterministic $O(1)$ memory bounds in high-churn multi-agent swarms.
 
 ---
 
