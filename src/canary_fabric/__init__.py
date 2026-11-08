@@ -16,6 +16,10 @@ from canary_fabric.adapters.langchain import (
 )
 from canary_fabric.adapters.llamaindex import CanaryNodePostprocessor
 from canary_fabric.adapters.openai import CanaryStreamWrapper, wrap_streaming_response
+from canary_fabric.blast_radius_breaker import (
+    BlastRadiusCircuitBreaker,
+    BlastRadiusTrippedError,
+)
 from canary_fabric.breaker.alerter import IncidentAlerter
 from canary_fabric.breaker.circuit import (
     BreakerAction,
@@ -72,6 +76,8 @@ __all__ = [
     "HoneytokenGenerator",
     "HoneytokenRegistry",
     # Breaker
+    "BlastRadiusCircuitBreaker",
+    "BlastRadiusTrippedError",
     "BreakerAction",
     "BreakerState",
     "CircuitBreaker",
