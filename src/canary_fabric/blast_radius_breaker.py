@@ -1,122 +1,112 @@
-# Copyright 2026 Invarcore Organization
-# SPDX-License-Identifier: Apache-2.0
-
-"""OWASP ASI08 Blast-Radius Circuit Breaker per Agent Identity."""
-
 from __future__ import annotations
 
-import collections
-import operator
-import threading
 import time
-import unicodedata
-from typing import Deque, Dict, Optional
+from collections import deque
+from dataclasses import dataclass
+from enum import Enum
+from typing import Callable, Deque, Dict, Tuple
+
+
+class BreakerState(str, Enum):
+    CLOSED = "CLOSED"
+    OPEN = "OPEN"
 
 
 class BlastRadiusTrippedError(RuntimeError):
-    """Raised when an agent exceeds tool velocity or trips injection markers."""
+    """Raised when an agent exceeds tool-velocity or anomaly strike thresholds."""
+
+
+@dataclass(frozen=True)
+class BreakerDecision:
+    agent_id: str
+    state: BreakerState
+    active_strikes: float
+    invocation_count: int
+    reason: str
 
 
 class BlastRadiusCircuitBreaker:
-    """OWASP ASI08 Blast-Radius Circuit Breaker:
-
-    Isolates individual agent identities when tool invocation velocity or security
-    strikes exceed configured thresholds within a sliding window.
+    """
+    CAN-03 Sliding-Window Blast-Radius Circuit Breaker.
+    Tracks per-agent tool invocation velocity and weighted anomaly strikes over
+    a monotonic sliding window, isolating compromised agents before cascading writes.
     """
 
     def __init__(
         self,
-        max_calls_per_window: int = 20,
-        window_seconds: float = 10.0,
-        max_security_strikes: int = 2,
-        strike_window_seconds: float = 60.0,
-        cooldown_seconds: Optional[float] = None,
-        agent_idle_ttl_s: float = 86400.0,
+        window_seconds: float = 60.0,
+        max_strikes: float = 3.0,
+        max_invocations_per_window: int = 25,
+        cooldown_seconds: float = 120.0,
+        now_fn: Callable[[], float] = time.monotonic,
     ) -> None:
-        self._max_calls = max_calls_per_window
-        self._window_s = window_seconds
-        self._max_strikes = max_security_strikes
-        self._strike_window_s = strike_window_seconds
-        self._cooldown_s = cooldown_seconds
-        self._agent_idle_ttl_s = agent_idle_ttl_s
-        self._call_timestamps: Dict[str, Deque[float]] = collections.defaultdict(collections.deque)
-        self._strike_timestamps: Dict[str, Deque[float]] = collections.defaultdict(collections.deque)
-        self._tripped_reason: Dict[str, str] = {}
-        self._tripped_at: Dict[str, float] = {}
-        self._last_activity: Dict[str, float] = {}
-        self._lock = threading.Lock()
+        if window_seconds <= 0 or max_strikes <= 0 or max_invocations_per_window <= 0:
+            raise ValueError("Breaker thresholds and window_seconds must be positive.")
+        self.window_seconds = float(window_seconds)
+        self.max_strikes = float(max_strikes)
+        self.max_invocations_per_window = int(max_invocations_per_window)
+        self.cooldown_seconds = float(cooldown_seconds)
+        self._now_fn = now_fn
 
-    def _prune_idle_agents(self, ts: float) -> None:
-        if operator.le(self._agent_idle_ttl_s, 0.0):
-            return
-        idle_cutoff = ts - self._agent_idle_ttl_s
-        stale_agents = [
-            agent
-            for agent, last_ts in self._last_activity.items()
-            if operator.le(last_ts, idle_cutoff)
-        ]
-        for agent in stale_agents:
-            self._tripped_reason.pop(agent, None)
-            self._tripped_at.pop(agent, None)
-            self._strike_timestamps.pop(agent, None)
-            self._call_timestamps.pop(agent, None)
-            self._last_activity.pop(agent, None)
+        self._invocations: Dict[str, Deque[float]] = {}
+        self._strikes: Dict[str, Deque[Tuple[float, float]]] = {}
+        self._tripped_until: Dict[str, float] = {}
 
-    def check_and_record_call(
+    def _evict_expired(self, agent_id: str, now: float) -> None:
+        cutoff = now - self.window_seconds
+        inv_q = self._invocations.get(agent_id)
+        if inv_q:
+            while inv_q and inv_q[0] < cutoff:
+                inv_q.popleft()
+        strike_q = self._strikes.get(agent_id)
+        if strike_q:
+            while strike_q and strike_q[0][0] < cutoff:
+                strike_q.popleft()
+
+    def record_and_check(
         self,
         agent_id: str,
-        has_injection_marker: bool = False,
-        now_s: Optional[float] = None,
-    ) -> None:
-        norm_agent = unicodedata.normalize("NFC", agent_id).strip()
-        ts = float(now_s if now_s is not None else time.monotonic())
-        with self._lock:
-            self._prune_idle_agents(ts)
-            self._last_activity[norm_agent] = ts
+        anomaly_weight: float = 0.0,
+        reason: str = "tool_call",
+    ) -> BreakerDecision:
+        if not agent_id or not agent_id.strip():
+            raise ValueError("agent_id is mandatory for blast-radius tracking.")
+        aid = agent_id.strip()
+        now = float(self._now_fn())
 
-            if norm_agent in self._tripped_reason:
-                if self._cooldown_s is not None and operator.ge(
-                    ts - self._tripped_at.get(norm_agent, 0.0), self._cooldown_s
-                ):
-                    self._tripped_reason.pop(norm_agent, None)
-                    self._tripped_at.pop(norm_agent, None)
-                    self._strike_timestamps.pop(norm_agent, None)
-                    self._call_timestamps.pop(norm_agent, None)
-                else:
-                    raise BlastRadiusTrippedError(
-                        f"ASI08 circuit OPEN for '{norm_agent}': {self._tripped_reason[norm_agent]}"
-                    )
+        tripped_until = self._tripped_until.get(aid, 0.0)
+        if now < tripped_until:
+            raise BlastRadiusTrippedError(
+                f"Agent '{aid}' is isolated in OPEN state until +{tripped_until - now:.1f}s."
+            )
 
-            if has_injection_marker:
-                strikes = self._strike_timestamps[norm_agent]
-                strike_cutoff = ts - self._strike_window_s
-                while strikes and operator.le(strikes[0], strike_cutoff):
-                    strikes.popleft()
-                strikes.append(ts)
-                if operator.ge(len(strikes), self._max_strikes):
-                    reason = f"security_strikes_exceeded ({len(strikes)})"
-                    self._tripped_reason[norm_agent] = reason
-                    self._tripped_at[norm_agent] = ts
-                    raise BlastRadiusTrippedError(
-                        f"ASI08 circuit OPEN for '{norm_agent}': {reason}"
-                    )
+        self._evict_expired(aid, now)
 
-            q = self._call_timestamps[norm_agent]
-            cutoff = ts - self._window_s
-            while q and operator.le(q[0], cutoff):
-                q.popleft()
-            q.append(ts)
-            if operator.gt(len(q), self._max_calls):
-                reason = f"velocity_exceeded ({len(q)} calls in {self._window_s}s)"
-                self._tripped_reason[norm_agent] = reason
-                self._tripped_at[norm_agent] = ts
-                raise BlastRadiusTrippedError(f"ASI08 circuit OPEN for '{norm_agent}': {reason}")
+        inv_q = self._invocations.setdefault(aid, deque())
+        inv_q.append(now)
 
-    def reset_agent(self, agent_id: str) -> None:
-        norm_agent = unicodedata.normalize("NFC", agent_id).strip()
-        with self._lock:
-            self._tripped_reason.pop(norm_agent, None)
-            self._tripped_at.pop(norm_agent, None)
-            self._strike_timestamps.pop(norm_agent, None)
-            self._call_timestamps.pop(norm_agent, None)
-            self._last_activity.pop(norm_agent, None)
+        strike_q = self._strikes.setdefault(aid, deque())
+        if anomaly_weight > 0:
+            strike_q.append((now, float(anomaly_weight)))
+
+        total_strikes = sum(w for _, w in strike_q)
+        inv_count = len(inv_q)
+
+        if total_strikes >= self.max_strikes or inv_count > self.max_invocations_per_window:
+            self._tripped_until[aid] = now + self.cooldown_seconds
+            trip_reason = (
+                f"strikes={total_strikes:.1f}/{self.max_strikes:.1f}"
+                if total_strikes >= self.max_strikes
+                else f"velocity={inv_count}/{self.max_invocations_per_window}"
+            )
+            raise BlastRadiusTrippedError(
+                f"Blast-radius circuit breaker tripped for '{aid}' ({trip_reason}: {reason})."
+            )
+
+        return BreakerDecision(
+            agent_id=aid,
+            state=BreakerState.CLOSED,
+            active_strikes=total_strikes,
+            invocation_count=inv_count,
+            reason=reason,
+        )

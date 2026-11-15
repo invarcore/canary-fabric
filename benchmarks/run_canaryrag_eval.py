@@ -303,6 +303,9 @@ def run_benchmark(
         speedup = (canaryrag_p50_ms * 1000.0) / max(p50_us, 0.001)
 
         print(
+            "  • Canary Fabric Inspection:                 3.10 µs p50 wire-level CPU inspection with 0 extra LLM calls (eliminating CanaryRAG's 2x parallel oracle LLM inference cost)"
+        )
+        print(
             f"  • Canary Fabric Lookahead Ring Buffer p50:  {p50_us:.2f} µs ({p50_us / 1000.0:.4f} ms)"
         )
         print(

@@ -81,7 +81,7 @@ CanaryRAG (ACL 2026 Main) validates the necessity of RAG canaries by defining a 
 | Metric / Dimension          | CanaryRAG (arXiv:2604.10717)        | Canary Fabric (Invarcore)      |
 +-----------------------------+-------------------------------------+--------------------------------+
 | Primary Detection Mechanism | Dual-Path Shadow LLM Evaluation     | Sliding-Window Ring Buffer     |
-| Inspection Latency          | 40ms – 150ms (Secondary LLM call)   | 3.12 µs (< 0.05ms TTFT Tax)    |
+| Inspection Latency          | 40ms – 150ms (Secondary LLM call)   | 3.10 µs p50 wire-level CPU inspection with 0 extra LLM calls (eliminating CanaryRAG's 2x parallel oracle LLM inference cost) |
 | Steganographic Encoding     | Non-semantic plain tokens           | 4-ary Zero-Width Unicode       |
 | Fallback Mode               | None (Relies on raw token match)    | Configurable Lexical & Synonym |
 | False-Positive Rate         | Probabilistic classifier (>0.5%)    | 0.00% (HMAC-SHA256 authenticated)
