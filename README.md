@@ -57,6 +57,19 @@ When enterprise applications connect Large Language Models (LLMs) or autonomous 
 
 ---
 
+## 🎯 Threat Model & Operational Boundary (INV-WP-2026-06)
+
+Canary Fabric is purpose-built and explicitly bounded to high-throughput, wire-level (<4 µs p50) defense against:
+1. **Raw Retrieved Chunk Exfiltration**: Direct or near-verbatim leaking of watermarked RAG chunks over outbound streams.
+2. **Streaming Egress Leakage**: Outbound Server-Sent Events (SSE) token sequences intercepted and severed before full canary tokens cross the wire.
+3. **Tool Parameter Exfiltration**: Agent tool-call JSON arguments containing raw retrieved context, honeytokens, or steganographic sentinels.
+4. **Steganographic Invariant Preservation**: 4-ary zero-width Unicode tripwires resilient across standard LLM tokenizers and JSON serialization.
+
+> [!IMPORTANT]
+> **Semantic Paraphrasing Boundary**: Complete lossy conceptual distillation or abstract paraphrasing (where zero lexical, syntactic, or steganographic sentinels survive across the model's generation boundary) is explicitly **out of scope** for low-latency streaming circuit breakers. Catching pure conceptual leakage without token overlap requires offline semantic policy evaluation or asynchronous Natural Language Inference (NLI), which trades microsecond wire performance for deep semantic reasoning.
+
+---
+
 ## ⚡ The Solution: Canary Fabric
 
 **Canary Fabric** (`canary-fabric`) introduces zero-overhead **invisible cryptographic tripwires** and **ultra-low-latency streaming circuit breakers**:

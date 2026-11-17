@@ -31,10 +31,12 @@ We assume an adversary with the following capabilities and constraints:
 * **Sanitization & Normalization Attacks**: The attacker may deploy intermediate text normalizers, regex cleaners (e.g., `re.sub(r'[\u200B-\u200D\uFEFF]', '', text)`), or HTML entity decoders in an attempt to strip zero-width steganographic markers.
 * **Paraphrasing & Translation Attacks**: The attacker commands the model to summarize, paraphrase, translate, or obfuscate (e.g., ROT13, Base64) the retrieved text rather than quoting it verbatim.
 
-### 2.2 Attacker Limitations (Out of Scope)
+### 2.2 Attacker Limitations & Scope Boundary (Out of Scope)
 * **Model Weight Compromise**: The attacker does not possess arbitrary access to model GPU memory or private weights.
 * **Physical Hardware / TEE Breach**: Attestation of the underlying host runtime is assumed orthogonal.
 * **Total Knowledge Erasure**: The attacker cannot prevent the model from reading the retrieved context altogether; if the model accesses the context, the tripwire tokens are present in the model's context window.
+* **Semantic Paraphrasing and Conceptual Distillation Boundary**:
+  Canary Fabric is mathematically and architecturally bounded to the detection and pre-egress interception of **raw retrieved text chunks and direct tool-output payloads** (including verbatim text replication, zero-width steganographic markers, serialized tool-call argument strings, and high-entropy lexical honeytokens). Complete lossy conceptual distillation, abstract rewriting, or high-level paraphrasing where zero lexical, syntactic, or steganographic sentinels survive across the generation boundary is explicitly **out of scope** for wire-level, microsecond-latency egress filtering. Detecting pure conceptual leakage without token or artifact overlap requires offline semantic policy evaluation or asynchronous Natural Language Inference (NLI), which fundamentally trades microsecond egress performance for deep semantic reasoning.
 
 ---
 
