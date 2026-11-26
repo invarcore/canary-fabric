@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://github.com/invarcore/canary-fabric/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen.svg" alt="CI"></a>
   <a href="https://invarcore.com"><img src="https://img.shields.io/badge/Website-invarcore.com-0284C7?logo=googlechrome&logoColor=white" alt="Invarcore Website"></a>
-  <a href="https://pypi.org/project/canary-fabric/"><img src="https://img.shields.io/badge/PyPI-canary--fabric-3776AB?logo=pypi&logoColor=white" alt="PyPI"></a>
+  <a href="https://github.com/invarcore/canary-fabric"><img src="https://img.shields.io/badge/Status-Pre--release%20%2F%20Source%20Install-orange.svg" alt="Status"></a>
   <a href="https://github.com/invarcore/canary-fabric/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
   <a href="https://github.com/invarcore/canary-fabric/releases"><img src="https://img.shields.io/badge/Release-v0.2.1-blue.svg" alt="Release"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-Native%20Security-purple.svg" alt="MCP Native"></a>
@@ -75,7 +75,7 @@ Canary Fabric is purpose-built and explicitly bounded to high-throughput, wire-l
 **Canary Fabric** (`canary-fabric`) introduces zero-overhead **invisible cryptographic tripwires** and **ultra-low-latency streaming circuit breakers**:
 
 * **4-ary Zero-Width Steganography**: Injects 64-bit HMAC-derived canary tokens (`\u200B`, `\u200C`, `\u200D`, `\uFEFF`) invisibly into retrieved chunks. They are imperceptible to human reviewers under standard font rendering and preserved through LLM tokenization.
-* **Tokenizer-Resilient Semantic Micro-Synonyms**: Keyed pseudo-random synonym substitution with statistical binomial confidence testing ($p < 0.001$) for environments that strip zero-width characters.
+* **Tokenizer-Resilient Semantic Micro-Synonyms**: Keyed pseudo-random synonym substitution with statistical binomial confidence testing (`min_slots=4`, default $p \le 0.05$; $p < 0.001$ for $n \ge 10$ matching slots) for environments that strip zero-width characters.
 * **Sliding-Window Stream Buffer (`SlidingWindowStreamBuffer`)**: Lookahead ring buffer that inspects outbound token streams and tool-call JSON in real time, severing connections before honeytokens or confidential data can leak over the wire.
 * **Sub-Millisecond (<0.8ms) Stream Circuit Breaker**: Scans outbound Server-Sent Events (SSE) and partial agent tool-call argument JSON in real-time with sub-millisecond overhead.
 * **Synthetic Honeytokens**: Generates realistic decoy credentials (`sk_live_canary_...`, postgres connection strings, canary emails) for honeypot documents.
