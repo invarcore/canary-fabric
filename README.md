@@ -74,7 +74,7 @@ Canary Fabric is purpose-built and explicitly bounded to high-throughput, wire-l
 
 **Canary Fabric** (`canary-fabric`) introduces zero-overhead **invisible cryptographic tripwires** and **ultra-low-latency streaming circuit breakers**:
 
-* **4-ary Zero-Width Steganography**: Injects 64-bit HMAC-derived canary tokens (`\u200B`, `\u200C`, `\u200D`, `\uFEFF`) invisibly into retrieved chunks. They are 100% invisible to human reviewers and preserved through LLM tokenization.
+* **4-ary Zero-Width Steganography**: Injects 64-bit HMAC-derived canary tokens (`\u200B`, `\u200C`, `\u200D`, `\uFEFF`) invisibly into retrieved chunks. They are imperceptible to human reviewers under standard font rendering and preserved through LLM tokenization.
 * **Tokenizer-Resilient Semantic Micro-Synonyms**: Keyed pseudo-random synonym substitution with statistical binomial confidence testing ($p < 0.001$) for environments that strip zero-width characters.
 * **Sliding-Window Stream Buffer (`SlidingWindowStreamBuffer`)**: Lookahead ring buffer that inspects outbound token streams and tool-call JSON in real time, severing connections before honeytokens or confidential data can leak over the wire.
 * **Sub-Millisecond (<0.8ms) Stream Circuit Breaker**: Scans outbound Server-Sent Events (SSE) and partial agent tool-call argument JSON in real-time with sub-millisecond overhead.
@@ -139,10 +139,14 @@ Tested on AMD/Intel & Apple Silicon architectures scanning 64-bit cryptographic 
 
 ### Installation
 
+> **Note:** PyPI publication is pre-release / source install only. Install directly from Git:
+
 ```bash
-pip install canary-fabric
-# or using uv
-uv pip install canary-fabric
+# Source install via pip
+pip install "git+https://github.com/invarcore/canary-fabric.git"
+
+# Or with uv
+uv add "git+https://github.com/invarcore/canary-fabric.git"
 ```
 
 ### 1. Watermark Retrieved Chunks & Guard Streams

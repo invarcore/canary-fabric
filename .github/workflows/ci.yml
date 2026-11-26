@@ -30,6 +30,9 @@ jobs:
       - name: Lint with ruff
         run: uv run ruff check .
 
+      - name: Verify README Truth Invariants
+        run: uv run python scripts/verify_readme_claims.py --offline
+
       - name: Run tests with pytest and coverage enforcement (>=90%)
         run: uv run pytest -v --cov=canary_fabric --cov-report=term-missing --cov-fail-under=90
 
