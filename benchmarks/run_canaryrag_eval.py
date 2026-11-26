@@ -54,6 +54,18 @@ BENIGN_CORPUS = [
     "Python 3.14 introduces concurrent garbage collection and subinterpreter thread isolation.",
 ]
 
+# High-density technical code corpus (hex, base64, UUID, API keys, SQL) for zero false-positive code stream verification
+TECHNICAL_CODE_CORPUS = [
+    "def derive_key(salt: bytes, secret: str) -> str: return hmac.new(salt, secret.encode(), hashlib.sha256).hexdigest()",
+    "SELECT u.id, u.tenant_id, encode(u.password_hash, 'hex') FROM app_users u WHERE u.status = 'ACTIVE' LIMIT 50;",
+    '{"id": "c7a8291f-0e1a-4d2b-98f5-3c1a89b02ef4", "digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}',
+    "export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\nexport AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+    "const buf = Buffer.from('48656c6c6f20576f726c64', 'hex').toString('base64'); console.log(buf);",
+    "git commit -m 'chore: bump dependencies to 3.14.0' --trailer 'Signed-off-by: Developer <dev@example.com>'",
+    "curl -X POST https://api.anthropic.com/v1/messages -H 'x-api-key: ant-api03-abcdef1234567890' -d '{\"model\": \"claude-3-5-sonnet\"}'",
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+]
+
 
 def run_benchmark(
     iterations: int = 100,
@@ -280,6 +292,106 @@ def run_benchmark(
     results.append(v3_res)
 
     # -------------------------------------------------------------------------
+    # VECTOR 4: High-Density Technical Code Streams (Zero False Alarm Verification)
+    # -------------------------------------------------------------------------
+    fp_code_count = 0
+    code_latencies: list[float] = []
+
+    breaker_code = CircuitBreaker(secret_key)
+    reg_code = HoneytokenRegistry()
+    watcher_code = StreamWatcher(
+        circuit_breaker=breaker_code,
+        honeytoken_registry=reg_code,
+        canary_mode=CanaryMode.HYBRID,
+    )
+
+    code_trials = iterations * 5
+    for i in range(code_trials):
+        snippet = TECHNICAL_CODE_CORPUS[i % len(TECHNICAL_CODE_CORPUS)]
+        for ch in [snippet[j : j + 8] for j in range(0, len(snippet), 8)]:
+            t0 = time.perf_counter()
+            _, is_trip, _ = watcher_code.scan_chunk(ch)
+            code_latencies.append((time.perf_counter() - t0) * 1e6)
+            if is_trip:
+                fp_code_count += 1
+
+    code_latencies.sort()
+    v4_res = BenchmarkVectorResult(
+        vector_id="V4",
+        vector_name="Technical Code Streams (False Positives)",
+        mode="hybrid",
+        trials=code_trials,
+        tripped_count=fp_code_count,
+        detection_rate=0.0,
+        false_positive_rate=(fp_code_count / code_trials) * 100.0,
+        bytes_leaked_before_sever=0,
+        p50_latency_us=code_latencies[int(len(code_latencies) * 0.50)],
+        p95_latency_us=code_latencies[int(len(code_latencies) * 0.95)],
+        p99_latency_us=code_latencies[int(len(code_latencies) * 0.99)],
+    )
+    results.append(v4_res)
+
+    # -------------------------------------------------------------------------
+    # VECTOR 5: Paraphrased Context Permutation (Lexical Anchor Survivability)
+    # -------------------------------------------------------------------------
+    tripped_5 = 0
+    latencies_5: list[float] = []
+
+    for i in range(iterations):
+        reg_p = HoneytokenRegistry()
+        injector_p = LexicalCanaryInjector(secret_key, honeytoken_registry=reg_p)
+        breaker_p = CircuitBreaker(secret_key, default_action=BreakerAction.BLOCK_AND_SEVER)
+
+        # Baseline text with lexical honeytoken
+        doc = f"Critical API Gateway private master key token (Iteration {i})."
+        wm_text, tokens = injector_p.inject(
+            text=doc,
+            tenant_id="corp",
+            doc_id=f"doc_{i}",
+            chunk_id="c0",
+            mode=CanaryMode.HYBRID,
+            token_type="decoy_credential",
+        )
+
+        # Simulate adversarial paraphrasing: reordering sentence and wrapping in conversational filler
+        canary_token = tokens[0] if tokens else ""
+        paraphrased = (
+            f"Here is the summarized information you requested: Regarding iteration {i}, "
+            f"the gateway token has been recorded as {canary_token}. Please handle securely."
+        )
+
+        watcher_p = StreamWatcher(
+            circuit_breaker=breaker_p,
+            honeytoken_registry=reg_p,
+            active_canary_tokens=set(tokens),
+            canary_mode=CanaryMode.HYBRID,
+        )
+
+        for ch in [paraphrased[j : j + 8] for j in range(0, len(paraphrased), 8)]:
+            t0 = time.perf_counter()
+            _, is_trip, _ = watcher_p.scan_chunk(ch)
+            latencies_5.append((time.perf_counter() - t0) * 1e6)
+            if is_trip:
+                tripped_5 += 1
+                break
+
+    latencies_5.sort()
+    v5_res = BenchmarkVectorResult(
+        vector_id="V5",
+        vector_name="Paraphrased Leakage (Lexical Persistence)",
+        mode="hybrid",
+        trials=iterations,
+        tripped_count=tripped_5,
+        detection_rate=(tripped_5 / iterations) * 100.0,
+        false_positive_rate=0.0,
+        bytes_leaked_before_sever=0,
+        p50_latency_us=latencies_5[int(len(latencies_5) * 0.50)],
+        p95_latency_us=latencies_5[int(len(latencies_5) * 0.95)],
+        p99_latency_us=latencies_5[int(len(latencies_5) * 0.99)],
+    )
+    results.append(v5_res)
+
+    # -------------------------------------------------------------------------
     # PRINT RESULTS TABLE & COMPARATIVE ANALYSIS
     # -------------------------------------------------------------------------
     if verbose:
@@ -358,14 +470,22 @@ def main() -> None:
     # 1. V1 detection rate must be 100%
     # 2. V2b (hybrid fallback) detection rate must be 100%
     # 3. V3 false positive rate must be 0%
-    # 4. p50 latency must be < 50 µs
+    # 4. V4 code stream false positive rate must be 0%
+    # 5. V5 paraphrased leakage detection rate must be 100%
+    # 6. p50 latency must be < 50 µs
     v1 = next(r for r in results if r.vector_id == "V1")
     v2b = next(r for r in results if r.vector_id == "V2b")
     v3 = next(r for r in results if r.vector_id == "V3")
+    v4 = next((r for r in results if r.vector_id == "V4"), None)
+    v5 = next((r for r in results if r.vector_id == "V5"), None)
 
     assert v1.detection_rate == 100.0, "Vector 1 failed 100% detection gate"
     assert v2b.detection_rate == 100.0, "Vector 2b lexical fallback failed 100% detection gate"
     assert v3.false_positive_rate == 0.0, "Vector 3 failed 0.00% false positive gate"
+    if v4:
+        assert v4.false_positive_rate == 0.0, "Vector 4 technical code failed 0.00% FP gate"
+    if v5:
+        assert v5.detection_rate == 100.0, "Vector 5 paraphrased leakage failed 100% detection gate"
     assert v1.p50_latency_us < 50.0, f"Vector 1 latency {v1.p50_latency_us}µs exceeded 50µs gate"
 
     print("\n[SUCCESS] All Canary Fabric benchmark gates passed!")

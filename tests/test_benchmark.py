@@ -35,14 +35,18 @@ def test_canaryrag_comparative_benchmark_harness(tmp_path: Path):
     log_file = tmp_path / "canaryrag_eval.jsonl"
     results = run_benchmark(iterations=10, output_path=log_file, verbose=False)
 
-    assert len(results) == 4
+    assert len(results) == 6
     v1 = next(r for r in results if r.vector_id == "V1")
     v2a = next(r for r in results if r.vector_id == "V2a")
     v2b = next(r for r in results if r.vector_id == "V2b")
     v3 = next(r for r in results if r.vector_id == "V3")
+    v4 = next(r for r in results if r.vector_id == "V4")
+    v5 = next(r for r in results if r.vector_id == "V5")
 
     assert v1.detection_rate == 100.0
     assert v2a.detection_rate == 0.0  # Demonstrates bypass under Unicode stripping
     assert v2b.detection_rate == 100.0  # Demonstrates lexical fallback mitigation
     assert v3.false_positive_rate == 0.0
+    assert v4.false_positive_rate == 0.0  # Demonstrates 0% FP on technical code
+    assert v5.detection_rate == 100.0  # Demonstrates lexical persistence under paraphrase
     assert log_file.exists()
